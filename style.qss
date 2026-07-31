@@ -1,0 +1,543 @@
+/* =====================================================================
+   GOR LAUNCHER - ОБЩИЙ ФАЙЛ СТИЛЕЙ
+   =====================================================================
+   Единый источник оформления для всех модулей проекта:
+   GorLauncher, bridge_loader, sunshine_control, ControlCenter,
+   exporter_editor, game_editor, group_editor.
+
+   Основная тема: тёмный фон #0a0a0a, акцентный цвет #007acc.
+   Отдельная тема для диалогов-редакторов (game_editor / group_editor):
+   более классическая "VSCode-like" палитра (#1e1e1e / #0e639c),
+   вынесена в конец файла и ограничена селектором #EditorDialog,
+   чтобы не затрагивать остальные окна.
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   1. ОБЩАЯ ТЕМА (GorLauncher, bridge_loader, sunshine_control,
+      ControlCenter, exporter_editor)
+   --------------------------------------------------------------------- */
+
+QMainWindow,
+QDialog,
+QWidget {
+    background-color: #0a0a0a;
+    color: #f0f0f0;
+}
+
+QLabel {
+    color: #f0f0f0;
+    background: transparent;
+}
+
+/* Базовые поля ввода */
+QLineEdit {
+    background: #1a1a1a;
+    border-radius: 8px;
+    padding: 10px 10px;
+    border: 1px solid #333;
+    color: white;
+    font-size: 14px;
+    min-height: 22px;
+}
+QLineEdit:focus {
+    border: 1px solid #007acc;
+    background: #222;
+}
+
+/* Базовые кнопки */
+QPushButton {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 10px 20px;
+    color: white;
+    border: 1px solid #333;
+    font-size: 13px;
+    font-weight: bold;
+    min-height: 22px;
+}
+QPushButton:hover {
+    background-color: #007acc;
+    border: 1px solid #005f9e;
+}
+QPushButton:pressed {
+    background-color: #005f9e;
+}
+QPushButton:disabled {
+    background-color: #111;
+    color: #555;
+    border: 1px solid #222;
+}
+QPushButton:focus {
+    border: 2px solid #ffcc00;
+}
+
+/* Красная кнопка "опасного" действия (например, остановить процесс) */
+QPushButton#StopBtn {
+    background-color: #550000;
+    border: 1px solid #8b0000;
+}
+QPushButton#StopBtn:hover {
+    background-color: #8b0000;
+}
+
+/* Группирующие рамки */
+QGroupBox {
+    color: #007acc;
+    font-size: 16px;
+    font-weight: bold;
+    border: 1px solid #333;
+    border-radius: 12px;
+    margin-top: 18px;
+    padding: 20px 12px 14px 12px;
+    background-color: #141414;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 0 10px;
+    background-color: #0a0a0a;
+}
+
+/* Журналы / многострочные текстовые поля */
+QPlainTextEdit {
+    background-color: #111;
+    color: #9ad1ff;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-family: Consolas, monospace;
+    font-size: 12px;
+    padding: 6px;
+}
+
+/* Списки */
+QListWidget {
+    background-color: #141414;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+}
+QListWidget::item {
+    padding: 8px;
+    border-radius: 6px;
+    margin: 2px 0px;
+}
+QListWidget::item:hover {
+    background-color: #1e1e1e;
+}
+QListWidget::item:selected {
+    background-color: #007acc;
+    color: white;
+    font-weight: bold;
+}
+
+/* Чекбоксы */
+QCheckBox {
+    color: white;
+    font-weight: bold;
+}
+
+/* Комбобоксы */
+QComboBox {
+    background: #1a1a1a;
+    color: white;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #333;
+}
+
+/* Вкладки (GorLauncher, sunshine_control) */
+QTabWidget::pane {
+    border: 1px solid #333;
+    border-radius: 12px;
+    background-color: #141414;
+    top: -1px;
+}
+QTabBar::tab {
+    background: #1a1a1a;
+    color: #ccc;
+    border: 1px solid #333;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-right: 4px;
+}
+QTabBar::tab:selected {
+    background: #007acc;
+    color: white;
+    border: 1px solid #005f9e;
+    font-weight: bold;
+}
+QTabBar::tab:hover:!selected {
+    background: #262626;
+}
+
+/* Прогресс-бары */
+QProgressBar {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: white;
+    text-align: center;
+}
+QProgressBar::chunk {
+    background-color: #007acc;
+    border-radius: 5px;
+}
+
+/* Контекстные и всплывающие меню (общие для всех окон) */
+QMenu {
+    background-color: #141414;
+    color: #f0f0f0;
+    border: 1px solid #333;
+    padding: 4px;
+}
+QMenu::item {
+    padding: 8px 20px;
+    border-radius: 6px;
+}
+QMenu::item:selected {
+    background-color: #007acc;
+    color: white;
+}
+
+/* Скролл-области без рамки (GorLauncher, exporter_editor) */
+QScrollArea {
+    border: none;
+}
+QScrollArea#ExportScrollArea {
+    background: #141414;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+
+/* ---------------------------------------------------------------------
+   2. sunshine_control.py - специфичные элементы
+   --------------------------------------------------------------------- */
+
+#CentralWidget {
+    background-color: #0a0a0a;
+}
+
+
+/* ---------------------------------------------------------------------
+   3. ControlCenter.py - специфичные элементы
+   --------------------------------------------------------------------- */
+
+QListWidget#AddonList {
+    border: none;
+    border-right: 1px solid #333;
+    padding: 8px;
+    outline: none;
+}
+QListWidget#AddonList::item {
+    padding: 10px 8px;
+    border-radius: 8px;
+    margin: 2px 0px;
+}
+
+QSplitter::handle {
+    background-color: #1a1a1a;
+}
+QSplitter::handle:hover {
+    background-color: #007acc;
+}
+
+#StatusBar {
+    background-color: #141414;
+    border-bottom: 1px solid #333;
+}
+#StatusLabel {
+    color: #ccc;
+    font-size: 12px;
+    font-weight: bold;
+}
+QProgressBar#LoadProgress {
+    background-color: #1a1a1a;
+    border: none;
+    border-radius: 3px;
+}
+QProgressBar#LoadProgress::chunk {
+    background-color: #007acc;
+    border-radius: 3px;
+}
+
+/* Строка аддона в списке (иконка, имя, версия, квадратный чекбокс) рисуется
+   напрямую QPainter'ом в AddonDelegate (см. ControlCenter.py), а не через
+   QWidget внутри setItemWidget() - это убирает "размытый" текст и "сжатый"
+   системный чекбокс, характерные для виджетов внутри QListWidget на Windows.
+   Цвета в делегате (фон #1a1a1a/#007acc, рамка #333/#005f9e, текст
+   #f0f0f0/#888) подобраны в тон остальной палитре, поэтому отдельных
+   QSS-правил для самой строки здесь больше не требуется. */
+
+/* --- Вкладка "Мониторинг": карточки --- */
+QFrame#MonitorCard {
+    background-color: #141414;
+    border: 1px solid #222;
+    border-radius: 14px;
+}
+QLabel#CardTitle {
+    color: #007acc;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+QLabel#AddonBigName {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: bold;
+}
+QLabel#AddonRowSub {
+    color: #888;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+/* Индикатор статуса аддона (активен/выключен), переключается через
+   динамическое свойство state="on"/"off", как favorite у GameCard. */
+QLabel#StatusPill {
+    padding: 4px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+QLabel#StatusPill[state="on"] {
+    background-color: rgba(0, 122, 204, 0.18);
+    color: #3fb8ff;
+    border: 1px solid #007acc;
+}
+QLabel#StatusPill[state="off"] {
+    background-color: rgba(139, 0, 0, 0.18);
+    color: #ff6b6b;
+    border: 1px solid #8b0000;
+}
+
+/* Лог активности аддона на вкладке мониторинга */
+QListWidget#ActivityLog {
+    background: transparent;
+    border: none;
+    outline: none;
+}
+QListWidget#ActivityLog::item {
+    background-color: #1a1a1a;
+    border: 1px solid #262626;
+    border-radius: 8px;
+    padding: 8px;
+    margin: 3px 1px;
+}
+QListWidget#ActivityLog::item:selected {
+    background-color: #1e1e1e;
+    border: 1px solid #007acc;
+    color: white;
+}
+
+/* Основная кнопка подтверждения на вкладке мониторинга */
+QPushButton#PrimaryBtn {
+    background-color: #007acc;
+    border: 1px solid #005f9e;
+}
+QPushButton#PrimaryBtn:hover {
+    background-color: #0090ee;
+}
+
+
+/* ---------------------------------------------------------------------
+   4. GorLauncher.py - специфичные элементы
+   --------------------------------------------------------------------- */
+
+QLabel#AppTitle {
+    font-size: 28px;
+    font-weight: bold;
+    color: #007acc;
+}
+QLabel#StatsLabel {
+    color: #888;
+    font-size: 14px;
+    background: #111;
+    padding: 10px;
+    border-radius: 10px;
+}
+QLineEdit#SearchBar {
+    border-radius: 15px;
+    padding: 8px 20px;
+}
+QLineEdit#SearchBar:focus {
+    border: 1px solid #ffcc00;
+}
+
+/* Карточка игры / истории */
+QFrame#GameCard,
+QFrame#HistoryCard {
+    background-color: #141414;
+    border: 1px solid #222;
+    border-radius: 20px;
+}
+QFrame#GameCard:hover,
+QFrame#HistoryCard:hover {
+    border: 2px solid #007acc;
+}
+QFrame#GameCard:focus,
+QFrame#HistoryCard:focus {
+    border: 3px solid #ffcc00;
+}
+
+QLabel#GameCardImage {
+    background-color: #0d0d0d;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+/* Золотая рамка у избранных игр - управляется динамическим свойством
+   "favorite", которое GameCard выставляет через setProperty(). */
+QLabel#GameCardImage[favorite="true"] {
+    border: 2px solid #ffcc00;
+}
+/* Плейсхолдер, когда для игры нет обложки. */
+QLabel#GameCardImage[empty="true"] {
+    font-size: 100px;
+    color: #222;
+}
+
+QLabel#HistoryCardImage {
+    background-color: #0d0d0d;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+QLabel#HistoryCardImage[empty="true"] {
+    font-size: 40px;
+    color: #444;
+}
+QLabel#GameCardName {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffffff;
+}
+QLabel#GameCardTime,
+QLabel#HistoryCardTime {
+    color: #aaa;
+    font-size: 14px;
+}
+QLabel#HistoryCardName {
+    font-weight: bold;
+    color: #007acc;
+    font-size: 14px;
+}
+QLabel#HistoryCardDate {
+    color: #888;
+    font-size: 11px;
+}
+
+QPushButton#RunGameBtn {
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #007acc;
+    border: none;
+    border-radius: 8px;
+}
+QPushButton#OpenFolderBtn {
+    background-color: #333333;
+    font-size: 20px;
+    border: none;
+    border-radius: 8px;
+}
+QPushButton#GroupToggleBtn {
+    background: none;
+    color: #007acc;
+    font-size: 24px;
+    border: none;
+}
+QLabel#GroupTitleLabel {
+    font-weight: bold;
+    font-size: 24px;
+    color: #007acc;
+}
+/* Заголовок группы "ИЗБРАННОЕ" подсвечивается золотым через
+   динамическое свойство "favorite" (см. GroupWidget.init_ui). */
+QLabel#GroupTitleLabel[favorite="true"] {
+    color: #ffcc00;
+}
+
+
+/* ---------------------------------------------------------------------
+   5. exporter_editor.py - специфичные элементы
+   --------------------------------------------------------------------- */
+
+QPushButton#ExportBtn {
+    background: #007acc;
+    padding: 15px;
+    font-weight: bold;
+    border-radius: 8px;
+}
+
+
+/* =====================================================================
+   6. РЕДАКТОРЫ (game_editor.py, group_editor.py)
+   Отдельная, более классическая тема в духе VSCode.
+   Всё ограничено объектом #EditorDialog, чтобы не влиять на остальные
+   окна (эти диалоги всегда запускаются как отдельный процесс).
+   ===================================================================== */
+
+QDialog#EditorDialog {
+    background-color: #1e1e1e;
+    color: #e1e1e1;
+    font-size: 14px;
+}
+QDialog#EditorDialog QLabel {
+    color: #e1e1e1;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+QDialog#EditorDialog QLineEdit,
+QDialog#EditorDialog QComboBox {
+    background-color: #2d2d2d;
+    border: 1px solid #3e3e42;
+    padding: 8px;
+    border-radius: 4px;
+    color: white;
+    min-height: unset;
+}
+QDialog#EditorDialog QLineEdit:focus {
+    border: 1px solid #0e639c;
+    background-color: #2d2d2d;
+}
+
+/* Поле аргументов запуска специально выделено акцентной рамкой */
+QDialog#EditorDialog QLineEdit#ArgsInput {
+    border: 1px solid #007acc;
+}
+
+QDialog#EditorDialog QPushButton {
+    background-color: #0e639c;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    min-height: unset;
+}
+QDialog#EditorDialog QPushButton:hover {
+    background-color: #1177bb;
+}
+QDialog#EditorDialog QPushButton#CancelBtn {
+    background-color: #444;
+}
+QDialog#EditorDialog QPushButton#CancelBtn:hover {
+    background-color: #555;
+}
+
+QDialog#EditorDialog QLabel#PreviewLabel {
+    border: 2px dashed #444;
+    background: #121212;
+    border-radius: 10px;
+    font-weight: normal;
+}
+QDialog#EditorDialog QCheckBox#FavCheck {
+    font-weight: bold;
+    color: #ffcc00;
+    margin-left: 10px;
+}

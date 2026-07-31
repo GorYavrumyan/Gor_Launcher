@@ -1,0 +1,924 @@
+{
+    "groups": {
+        "Engens": [
+            {
+                "name": "Unity",
+                "path": "F:/Unity/Unity Hub/Unity Hub.exe",
+                "root_path": "F:/Unity",
+                "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 58,
+                "id": "20e90b5d-088c-44df-8254-5d94fe835ed6"
+            },
+            {
+                "name": "MCreator",
+                "path": "F:/MCreator/mcreator.exe",
+                "root_path": "F:/MCreator",
+                "icon": "F:/fails/Foto_video/Games/MCreator.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 17361,
+                "id": "7824124f-6159-469f-b9d3-a6a239aaedf7"
+            },
+            {
+                "name": "Hamer HL2",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/bin/hammer.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/bin",
+                "icon": "F:/fails/Foto_video/Games/Hamer HL2.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "0a708901-60c7-4387-be72-622f4e445ba1"
+            },
+            {
+                "name": "J.A.C.K.",
+                "path": "F:/J.A.C.K/jack.exe",
+                "root_path": "F:/J.A.C.K",
+                "icon": "F:/fails/Foto_video/Games/J.A.C.K..jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "320ed159-5250-45d9-8eab-757c64967c87"
+            },
+            {
+                "name": "Godot",
+                "path": "F:/Godot projects/Godot.exe",
+                "root_path": "F:/Godot projects",
+                "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 2210,
+                "id": "9048dba9-2bcb-443d-88e2-0ea60a1997f3"
+            },
+            {
+                "name": "Hamer ++",
+                "path": "F:/Games/Portal/Portal_2/bin/hammerplusplus.exe",
+                "root_path": "F:/Games/Portal/Portal_2/bin",
+                "icon": "F:/fails/Foto_video/Games/Hamer++.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 4635,
+                "id": "3311fb37-4de6-4f8f-baac-2a7a91c8516b"
+            }
+        ],
+        "Patnt": [
+            {
+                "name": "Aseprite",
+                "path": "F:/Aseprite_by_Gor/aseprite/build/bin/aseprite.exe",
+                "root_path": "F:/Aseprite_by_Gor/aseprite",
+                "icon": "F:/fails/Foto_video/Games/aseprite.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 115398,
+                "id": "ff82800b-9422-432e-982c-4220862d5604"
+            },
+            {
+                "name": "PantNET",
+                "path": "F:/Paint.NET/paintdotnet.exe",
+                "root_path": "F:/Paint.NET",
+                "icon": "F:/fails/Foto_video/Games/Paint.NET.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 9471,
+                "id": "8a4c708a-b9fb-47b0-ba42-449fd20b8a57"
+            },
+            {
+                "name": "libresprite",
+                "path": "F:/libresprite/libresprite.exe",
+                "root_path": "F:/libresprite",
+                "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 177,
+                "id": "20def81e-2368-406c-9d02-f1766065f30b"
+            },
+            {
+                "name": "Microsoft Paint",
+                "path": "F:/fails/Paint.bat",
+                "root_path": "F:/fails",
+                "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 84,
+                "id": "aaa5b4b0-0eb7-4d29-8869-bbfc0931cc80"
+            }
+        ],
+        "Tools": [
+            {
+                "name": "GitHub Desktop",
+                "path": "F:/GitHubDesktop/GitHubDesktop.exe",
+                "root_path": "F:/GitHubDesktop",
+                "icon": "F:/fails/Foto_video/Games/GitHub Desktop.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "7e9300b2-37fc-4e08-9326-2c0c73acda77"
+            },
+            {
+                "name": "PC Remote Receiver",
+                "path": "F:/PC Remote Receiver/PCRemoteReceiver.exe",
+                "root_path": "F:/PC Remote Receiver",
+                "icon": "F:/fails/Foto_video/Games/Monect.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "fb8379da-49bf-43f1-b9af-9426e4044731"
+            },
+            {
+                "name": "QBitTorent",
+                "path": "F:/qBittorrent/qbittorrent.exe",
+                "root_path": "F:/qBittorrent",
+                "icon": "F:/fails/Foto_video/Games/qbittorrent.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "213b52fb-0d32-4ed9-931a-72edbb5340c4"
+            },
+            {
+                "name": "BEE2",
+                "path": "F:/Games/Portal/BEE2/BEE2.exe",
+                "root_path": "F:/Games/Portal/BEE2",
+                "icon": "F:/fails/Foto_video/Games/BEE2.png",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "ca680ebe-f41a-4a3f-999e-5f38ca6823f9"
+            }
+        ],
+        "Platformers": [
+            {
+                "name": "Hollow Knight",
+                "path": "F:/Games/Platformers/Hollow Knight/Game/Hollow Knight Silksong/Hollow Knight Silksong.exe",
+                "root_path": "F:/Games/Platformers/Hollow Knight",
+                "icon": "F:/fails/Foto_video/Games/Hollow Knight.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 35927,
+                "id": "215c7359-e492-47f9-a296-9b724784a8e8"
+            }
+        ],
+        "Portal": [
+            {
+                "name": "Portal 1",
+                "path": "F:/Games/Portal/Portal_1/Game/Portal/Portal.exe",
+                "root_path": "F:/Games/Portal/Portal_1",
+                "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 10470,
+                "id": "a555edee-0418-4445-9910-b3e6116b46d2"
+            },
+            {
+                "name": "POrtal 2",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2",
+                "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 11810,
+                "id": "723b7fa9-4863-4120-9fa2-356611277598"
+            },
+            {
+                "name": "Portal Stories Mel",
+                "path": "F:/Games/Portal/Portal_Stories_Mel/Portal_Stories_Mel/Game/Start Game.bat",
+                "root_path": "F:/Games/Portal/Portal_Stories_Mel",
+                "icon": "F:/fails/Foto_video/Games/Portal Stories Mel.png",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 116,
+                "id": "ae60da44-5db8-4b6b-880f-2f0392754bc4"
+            },
+            {
+                "name": "Portal Revolution",
+                "path": "F:/Games/Portal/Portal_Revolution/Portal Revolution/bin/win64/revolution.exe",
+                "root_path": "F:/Games/Portal/Portal_Revolution",
+                "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 10682,
+                "id": "d7fcaf74-b250-472d-bc42-ea16e0fa6df0"
+            },
+            {
+                "name": "Portal Rexaura",
+                "path": "F:/Games/Portal/Portal_1/Game/Portal/hl2.exe",
+                "root_path": "F:/Games/Portal/Portal_1/Game/Portal/rexaura",
+                "icon": "F:/fails/Foto_video/Games/Portal rexaura.jpg",
+                "args": "-game rexaura",
+                "favorite": false,
+                "playtime_seconds": 4841,
+                "id": "2cdfcb3d-65cc-4d8c-a10f-ce9966c8a9c1"
+            },
+            {
+                "name": "Portal Designed For Danger",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2/portal2_dlc3",
+                "icon": "F:/fails/Foto_video/Games/Designed for Danger_2.png",
+                "args": "+map dfd_1_intro",
+                "favorite": false,
+                "playtime_seconds": 22,
+                "id": "ae16983d-9bca-4e51-bdf2-e1baa683740b"
+            }
+        ],
+        "Half-Life": [
+            {
+                "name": "Half-Life 2",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/hl2.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "e4513fe5-0095-4751-8b06-42b2caf56bd5"
+            },
+            {
+                "name": "Half-Life 2 Episode One",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode One.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2 Episode One.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 13081,
+                "id": "42829484-45a8-4348-9d81-18c4302222bd"
+            },
+            {
+                "name": "Half-Life 2 Episode Two",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode Two.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2 Episode Two.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "912c592a-c8c4-4848-bf6f-c256f8f74ee9"
+            },
+            {
+                "name": "Half-LIfe 1",
+                "path": "F:/Games/Half-Live/Half-Life_1/Half-Life1/Launch HL1.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_1",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 1.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 3,
+                "id": "e640dbf5-e48c-4f94-9a9e-4d5912174cc5"
+            },
+            {
+                "id": "c617bcc6-03d5-4add-aae2-6000960f2bb1",
+                "name": "MINERVA",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/hl2.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/sourcemods/metastasis",
+                "icon": "",
+                "args": "-game sourcemods/metastasis",
+                "favorite": false,
+                "playtime_seconds": 554
+            }
+        ],
+        "Game": [
+            {
+                "name": "Jumpino",
+                "path": "F:/Godot projects/jumpino.exe",
+                "root_path": "F:/Godot projects",
+                "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 4272,
+                "id": "7f6bd810-64d5-4af1-a3a8-d4e0ec4cbc94"
+            },
+            {
+                "name": "Minecraft",
+                "path": "F:/Minecraft/TL.exe",
+                "root_path": "F:/Minecraft",
+                "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 3,
+                "id": "c036d351-7d85-46c2-9357-6a9a313d3689"
+            },
+            {
+                "name": "GMods",
+                "path": "F:/Games/Garrys_Mod/Game/hl2.exe",
+                "root_path": "F:/Games/Garrys_Mod",
+                "icon": "F:/fails/Foto_video/Games/Garrys Mod.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "7cecda55-8367-4909-8aef-1043dc774499"
+            },
+            {
+                "name": "The Talos Principle",
+                "path": "F:/Games/The Talos Principle/Game/The Talos Principle/Bin/x64/Talos.exe",
+                "root_path": "F:/Games/The Talos Principle",
+                "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 28206,
+                "id": "baab4d6c-acbb-46e8-a24a-802acb670b67"
+            }
+        ]
+    },
+    "standalone": [],
+    "history": [
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "30.07.2026 11:07",
+            "session_time": 3
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "28.07.2026 15:55",
+            "session_time": 4394
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:21",
+            "session_time": 31
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:20",
+            "session_time": 34
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:20",
+            "session_time": 336
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:14",
+            "session_time": 7
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:14",
+            "session_time": 7
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:11",
+            "session_time": 17
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:05",
+            "session_time": 7
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:05",
+            "session_time": 7
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:02",
+            "session_time": 5
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:01",
+            "session_time": 17
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:01",
+            "session_time": 28
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:00",
+            "session_time": 5
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 11:00",
+            "session_time": 8
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 10:59",
+            "session_time": 10
+        },
+        {
+            "name": "Half-LIfe 1",
+            "icon": "F:/fails/Foto_video/Games/Half-Life 1.jpg",
+            "date": "28.07.2026 10:56",
+            "session_time": 3
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 10:56",
+            "session_time": 4
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 10:54",
+            "session_time": 11
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 10:46",
+            "session_time": 4
+        },
+        {
+            "name": "MINERVA",
+            "icon": "",
+            "date": "28.07.2026 10:46",
+            "session_time": 16
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 6
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:03",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:00",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:00",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:00",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 22:00",
+            "session_time": 2
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:56",
+            "session_time": 0
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:56",
+            "session_time": 2
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:56",
+            "session_time": 2
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:54",
+            "session_time": 1
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:54",
+            "session_time": 0
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:54",
+            "session_time": 8
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:54",
+            "session_time": 6
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:51",
+            "session_time": 5
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:51",
+            "session_time": 4
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:51",
+            "session_time": 7
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:50",
+            "session_time": 3
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:50",
+            "session_time": 7
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:50",
+            "session_time": 4
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:48",
+            "session_time": 13
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:48",
+            "session_time": 12
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:47",
+            "session_time": 32
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:47",
+            "session_time": 1
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 21:41",
+            "session_time": 0
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:41",
+            "session_time": 10
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:39",
+            "session_time": 2
+        },
+        {
+            "name": "Aseprite",
+            "icon": "F:/fails/Foto_video/Games/aseprite.jpg",
+            "date": "27.07.2026 21:32",
+            "session_time": 2
+        },
+        {
+            "name": "Aseprite",
+            "icon": "F:/fails/Foto_video/Games/aseprite.jpg",
+            "date": "27.07.2026 21:32",
+            "session_time": 19
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 21:31",
+            "session_time": 19
+        },
+        {
+            "name": "libresprite",
+            "icon": "F:/fails/Foto_video/Games/libresprite.jpg",
+            "date": "27.07.2026 18:03",
+            "session_time": 15
+        },
+        {
+            "name": "Microsoft Paint",
+            "icon": "F:/fails/Foto_video/Games/Microsoft paint.jpg",
+            "date": "27.07.2026 17:49",
+            "session_time": 1
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "27.07.2026 15:48",
+            "session_time": 4542
+        },
+        {
+            "name": "Half-Life 2 Episode One",
+            "icon": "F:/fails/Foto_video/Games/Half-Life 2 Episode One.jpg",
+            "date": "27.07.2026 14:31",
+            "session_time": 41
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "27.07.2026 08:32",
+            "session_time": 3
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "25.07.2026 17:14",
+            "session_time": 11984
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "25.07.2026 12:04",
+            "session_time": 0
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "23.07.2026 12:11",
+            "session_time": 1435
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 15:17",
+            "session_time": 73
+        },
+        {
+            "name": "POrtal 2",
+            "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+            "date": "22.07.2026 14:21",
+            "session_time": 267
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 14:16",
+            "session_time": 571
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 14:16",
+            "session_time": 568
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 14:07",
+            "session_time": 3351
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 13:35",
+            "session_time": 1428
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 13:11",
+            "session_time": 6
+        },
+        {
+            "name": "Portal 1",
+            "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+            "date": "22.07.2026 13:11",
+            "session_time": 4
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 12:39",
+            "session_time": 58
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 12:38",
+            "session_time": 13
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 12:38",
+            "session_time": 20
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 12:38",
+            "session_time": 13
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "22.07.2026 12:38",
+            "session_time": 12
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "19.07.2026 07:35",
+            "session_time": 0
+        },
+        {
+            "name": "Portal Revolution",
+            "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+            "date": "19.07.2026 07:35",
+            "session_time": 1225
+        },
+        {
+            "name": "Portal Revolution",
+            "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+            "date": "18.07.2026 11:21",
+            "session_time": 9429
+        },
+        {
+            "name": "Portal Revolution",
+            "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+            "date": "18.07.2026 07:58",
+            "session_time": 27
+        },
+        {
+            "name": "Portal Revolution",
+            "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+            "date": "17.07.2026 11:53",
+            "session_time": 1
+        },
+        {
+            "name": "Godot",
+            "icon": "F:/fails/Foto_video/Games/Godot.jpg",
+            "date": "17.07.2026 11:16",
+            "session_time": 26
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 5
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 6
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 6
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 6
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 5
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 8
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "17.07.2026 10:50",
+            "session_time": 5
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "16.07.2026 16:37",
+            "session_time": 2559
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "16.07.2026 11:48",
+            "session_time": 1006
+        },
+        {
+            "name": "Hamer ++",
+            "icon": "F:/fails/Foto_video/Games/Hamer++.jpg",
+            "date": "15.07.2026 08:59",
+            "session_time": 785
+        },
+        {
+            "name": "Hamer ++",
+            "icon": "F:/fails/Foto_video/Games/Hamer++.jpg",
+            "date": "15.07.2026 08:45",
+            "session_time": 35
+        },
+        {
+            "name": "Hamer ++",
+            "icon": "F:/fails/Foto_video/Games/Hamer++.jpg",
+            "date": "15.07.2026 08:44",
+            "session_time": 1170
+        },
+        {
+            "name": "Unity",
+            "icon": "F:/fails/Foto_video/Games/Unity.jpg",
+            "date": "15.07.2026 08:26",
+            "session_time": 10
+        },
+        {
+            "name": "Hamer ++",
+            "icon": "F:/fails/Foto_video/Games/Hamer++.jpg",
+            "date": "15.07.2026 08:24",
+            "session_time": 11
+        },
+        {
+            "name": "POrtal 2",
+            "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+            "date": "13.07.2026 17:57",
+            "session_time": 7379
+        },
+        {
+            "name": "POrtal 2",
+            "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+            "date": "12.07.2026 11:27",
+            "session_time": 3984
+        },
+        {
+            "name": "Portal Rexaura",
+            "icon": "F:/fails/Foto_video/Games/Portal rexaura.jpg",
+            "date": "12.07.2026 10:20",
+            "session_time": 57
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "12.07.2026 10:18",
+            "session_time": 0
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "12.07.2026 10:17",
+            "session_time": 0
+        }
+    ],
+    "addons_list": [
+        "addon_1"
+    ]
+}

@@ -1,0 +1,3 @@
+pyinstaller --noconsole --onefile --icon=favicon.ico GorLauncher.py
+pyinstaller --noconsole --onedir --name "GOR_Launcher" bridge_loader.py
+pyinstaller --noconsole --onefile game_editor.py

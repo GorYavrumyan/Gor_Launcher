@@ -1,0 +1,179 @@
+{
+    "env": {},
+    "apps": [
+        {
+            "name": "Unity",
+            "cmd": "F:/Unity/Unity Hub/Unity Hub.exe",
+            "working-dir": "F:/Unity/Unity Hub",
+            "auto-detach": true
+        },
+        {
+            "name": "MCreator",
+            "cmd": "F:/MCreator/mcreator.exe",
+            "working-dir": "F:/MCreator",
+            "auto-detach": true
+        },
+        {
+            "name": "Hamer HL2",
+            "cmd": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/bin/hammer.exe",
+            "working-dir": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/bin",
+            "auto-detach": true
+        },
+        {
+            "name": "Hamer ++",
+            "cmd": "F:/Games/Portal/Portal_2/bin/hammerplusplus.exe",
+            "working-dir": "F:/Games/Portal/Portal_2/bin",
+            "auto-detach": true
+        },
+        {
+            "name": "J.A.C.K.",
+            "cmd": "F:/J.A.C.K/jack.exe",
+            "working-dir": "F:/J.A.C.K",
+            "auto-detach": true
+        },
+        {
+            "name": "Godot",
+            "cmd": "F:/Godot projects/Godot.exe",
+            "working-dir": "F:/Godot projects",
+            "auto-detach": true
+        },
+        {
+            "name": "Aseprite",
+            "cmd": "F:/Aseprite_by_Gor/aseprite/build/bin/aseprite.exe",
+            "working-dir": "F:/Aseprite_by_Gor/aseprite/build/bin",
+            "auto-detach": true
+        },
+        {
+            "name": "Microsoft Paint",
+            "cmd": "F:/fails/Paint.bat",
+            "working-dir": "F:/fails",
+            "auto-detach": true
+        },
+        {
+            "name": "PantNET",
+            "cmd": "F:/Paint.NET/paintdotnet.exe",
+            "working-dir": "F:/Paint.NET",
+            "auto-detach": true
+        },
+        {
+            "name": "libresprite",
+            "cmd": "F:/libresprite/libresprite.exe",
+            "working-dir": "F:/libresprite",
+            "auto-detach": true
+        },
+        {
+            "name": "BEE2",
+            "cmd": "F:/Games/Portal/BEE2/BEE2.exe",
+            "working-dir": "F:/Games/Portal/BEE2",
+            "auto-detach": true
+        },
+        {
+            "name": "GitHub Desktop",
+            "cmd": "F:/GitHubDesktop/GitHubDesktop.exe",
+            "working-dir": "F:/GitHubDesktop",
+            "auto-detach": true
+        },
+        {
+            "name": "PC Remote Receiver",
+            "cmd": "F:/PC Remote Receiver/PCRemoteReceiver.exe",
+            "working-dir": "F:/PC Remote Receiver",
+            "auto-detach": true
+        },
+        {
+            "name": "QBitTorent",
+            "cmd": "F:/qBittorrent/qbittorrent.exe",
+            "working-dir": "F:/qBittorrent",
+            "auto-detach": true
+        },
+        {
+            "name": "Hollow Knight",
+            "cmd": "F:/Games/Platformers/Hollow Knight/Game/Hollow Knight Silksong/Hollow Knight Silksong.exe",
+            "working-dir": "F:/Games/Platformers/Hollow Knight/Game/Hollow Knight Silksong",
+            "auto-detach": true
+        },
+        {
+            "name": "Portal 1",
+            "cmd": "F:/Games/Portal/Portal_1/Game/Portal/Portal.exe",
+            "working-dir": "F:/Games/Portal/Portal_1/Game/Portal",
+            "auto-detach": true
+        },
+        {
+            "name": "POrtal 2",
+            "cmd": "F:/Games/Portal/Portal_2/portal2.exe",
+            "working-dir": "F:/Games/Portal/Portal_2",
+            "auto-detach": true
+        },
+        {
+            "name": "Portal Stories Mel",
+            "cmd": "F:/Games/Portal/Portal_Stories_Mel/Portal_Stories_Mel/Game/Start Game.bat",
+            "working-dir": "F:/Games/Portal/Portal_Stories_Mel/Portal_Stories_Mel/Game",
+            "auto-detach": true
+        },
+        {
+            "name": "Portal Revolution",
+            "cmd": "F:/Games/Portal/Portal_Revolution/Portal Revolution/bin/win64/revolution.exe",
+            "working-dir": "F:/Games/Portal/Portal_Revolution/Portal Revolution/bin/win64",
+            "auto-detach": true
+        },
+        {
+            "name": "Portal Rexaura",
+            "cmd": "\"F:/Games/Portal/Portal_1/Game/Portal/hl2.exe\" -game rexaura",
+            "working-dir": "F:/Games/Portal/Portal_1/Game/Portal",
+            "auto-detach": true
+        },
+        {
+            "name": "Portal Designed For Danger",
+            "cmd": "\"F:/Games/Portal/Portal_2/portal2.exe\" +map dfd_1_intro",
+            "working-dir": "F:/Games/Portal/Portal_2",
+            "auto-detach": true
+        },
+        {
+            "name": "Half-Life 2",
+            "cmd": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/hl2.exe",
+            "working-dir": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+            "auto-detach": true
+        },
+        {
+            "name": "Half-Life 2 Episode One",
+            "cmd": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode One.exe",
+            "working-dir": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+            "auto-detach": true
+        },
+        {
+            "name": "Half-Life 2 Episode Two",
+            "cmd": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode Two.exe",
+            "working-dir": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+            "auto-detach": true
+        },
+        {
+            "name": "Half-LIfe 1",
+            "cmd": "F:/Games/Half-Live/Half-Life_1/Half-Life1/Launch HL1.exe",
+            "working-dir": "F:/Games/Half-Live/Half-Life_1/Half-Life1",
+            "auto-detach": true
+        },
+        {
+            "name": "Jumpino",
+            "cmd": "F:/Godot projects/jumpino.exe",
+            "working-dir": "F:/Godot projects",
+            "auto-detach": true
+        },
+        {
+            "name": "Minecraft",
+            "cmd": "F:/Minecraft/TL.exe",
+            "working-dir": "F:/Minecraft",
+            "auto-detach": true
+        },
+        {
+            "name": "GMods",
+            "cmd": "F:/Games/Garrys_Mod/Game/hl2.exe",
+            "working-dir": "F:/Games/Garrys_Mod/Game",
+            "auto-detach": true
+        },
+        {
+            "name": "The Talos Principle",
+            "cmd": "F:/Games/The Talos Principle/Game/The Talos Principle/Bin/x64/Talos.exe",
+            "working-dir": "F:/Games/The Talos Principle/Game/The Talos Principle/Bin/x64",
+            "auto-detach": true
+        }
+    ]
+}
