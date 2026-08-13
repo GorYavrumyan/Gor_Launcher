@@ -4,8 +4,10 @@ import os
 from PyQt6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLineEdit, 
                              QPushButton, QLabel, QMessageBox, QHBoxLayout)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
 
 from style_loader import apply_global_style
+from lang_loader import tr
 
 class GroupEditor(QDialog):
     # Добавили аргумент old_name=None, чтобы редактор понимал режим работы
@@ -16,9 +18,9 @@ class GroupEditor(QDialog):
         
         # Определяем режим работы и заголовок
         if self.old_name:
-            self.setWindowTitle("Редактировать группу")
+            self.setWindowTitle(tr("group_editor.title_edit"))
         else:
-            self.setWindowTitle("Создать группу")
+            self.setWindowTitle(tr("group_editor.title_create"))
 
         self.setObjectName("EditorDialog")
         self.setFixedWidth(400)
@@ -30,12 +32,12 @@ class GroupEditor(QDialog):
         layout.setSpacing(15)
         
         # Заголовок
-        self.lbl = QLabel("Введите название группы:")
+        self.lbl = QLabel(tr("group_editor.label"))
         self.lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl)
         
         self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText("напишите название группы")
+        self.name_edit.setPlaceholderText(tr("group_editor.placeholder"))
         
         # Если редактируем - вставляем текущее имя
         if self.old_name:
@@ -45,9 +47,9 @@ class GroupEditor(QDialog):
         
         # Кнопки
         btn_layout = QHBoxLayout()
-        self.save_btn = QPushButton("СОХРАНИТЬ")
+        self.save_btn = QPushButton(tr("common.save"))
         self.save_btn.clicked.connect(self.save_group)
-        cancel_btn = QPushButton("ОТМЕНА")
+        cancel_btn = QPushButton(tr("common.cancel"))
         cancel_btn.setObjectName("CancelBtn")
         cancel_btn.clicked.connect(self.reject)
         
@@ -58,7 +60,7 @@ class GroupEditor(QDialog):
     def save_group(self):
         name = self.name_edit.text().strip()
         if not name: 
-            QMessageBox.warning(self, "Ошибка", "Имя группы не может быть пустым!")
+            QMessageBox.warning(self, tr("common.error"), tr("group_editor.name_empty_error"))
             return
 
         if os.path.exists(self.data_file):
@@ -75,7 +77,7 @@ class GroupEditor(QDialog):
             # Режим редактирования
             if name != self.old_name:
                 if name in data["groups"]:
-                    QMessageBox.warning(self, "Ошибка", "Группа с таким именем уже существует!")
+                    QMessageBox.warning(self, tr("common.error"), tr("group_editor.name_exists_edit_error"))
                     return
                 
                 # Создаем новый словарь, перенося ключи и сохраняя их очередность
@@ -90,7 +92,7 @@ class GroupEditor(QDialog):
         else:
             # Режим создания
             if name in data["groups"]:
-                QMessageBox.warning(self, "Ошибка", "Такая группа уже существует!")
+                QMessageBox.warning(self, tr("common.error"), tr("group_editor.name_exists_create_error"))
                 return
             data["groups"][name] = []
         # -----------------------------------------------------------
@@ -102,6 +104,7 @@ class GroupEditor(QDialog):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
     apply_global_style(app)
 
     # Обработка параметров запуска, переданных из консоли/лаунчера

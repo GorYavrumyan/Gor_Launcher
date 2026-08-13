@@ -8,8 +8,10 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QListWidget, QListWidgetItem, 
                              QLabel, QLineEdit, QProgressBar, QMessageBox, QFileDialog, QScrollArea, QCheckBox)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QIcon
 
 from style_loader import apply_global_style
+from lang_loader import tr
 
 # Оформление приложения теперь берётся из общего style.qss (см. style_loader.py),
 # который применяется глобально к QApplication в блоке __main__.
@@ -46,7 +48,7 @@ class PackerWorker(QThread):
                     zf.write(f_path, arcname=os.path.join(game_name, os.path.relpath(f_path, root_folder)))
                     p_game = int(((idx + 1) / len(files_list)) * 100) if files_list else 100
                     p_total = int(((i + (idx + 1) / len(files_list)) / (total if total > 0 else 1)) * 50)
-                    self.progress.emit(p_total, f"Упаковка {game_name}", i, p_game)
+                    self.progress.emit(p_total, tr("exporter.packing_label", name=game_name), i, p_game)
                 
                 icon_path = game.get('icon', '')
                 if icon_path and os.path.exists(icon_path):
@@ -58,7 +60,7 @@ class PackerWorker(QThread):
         with zipfile.ZipFile(master_full_path, 'w', zipfile.ZIP_DEFLATED) as master_zip:
             total_zips = len(game_zips) if game_zips else 1
             for i, zf_path in enumerate(game_zips):
-                self.progress.emit(50 + int((i + 1) / total_zips * 50), "Сборка мастер-архива", -1, 0)
+                self.progress.emit(50 + int((i + 1) / total_zips * 50), tr("exporter.assembling_label"), -1, 0)
                 master_zip.write(zf_path, arcname=os.path.basename(zf_path))
                 os.remove(zf_path)
             
@@ -71,10 +73,15 @@ class PackerWorker(QThread):
             
         self.finished.emit()
 
+
+with open("version.json", "r", encoding="utf-8") as f:
+    version = json.load(f)["version"]
+
+
 class PackerGUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("GOR Packer PRO")
+        self.setWindowTitle(tr("exporter.window_title") + "   " + version)
         self.setFixedSize(500, 700)
         self.games = self.load_games()
         self.selected_folder = ""
@@ -90,29 +97,29 @@ class PackerGUI(QWidget):
 
     def init_ui(self):
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Название итогового архива:"))
-        self.name_edit = QLineEdit("MyLibraryExport")
+        layout.addWidget(QLabel(tr("exporter.name_label")))
+        self.name_edit = QLineEdit(tr("exporter.default_name"))
         layout.addWidget(self.name_edit)
         
-        layout.addWidget(QLabel("Куда сохранить zip:"))
+        layout.addWidget(QLabel(tr("exporter.save_location_label")))
         folder_layout = QHBoxLayout()
         self.folder_edit = QLineEdit()
         self.folder_edit.setReadOnly(True)
-        self.folder_btn = QPushButton("📁 Обзор")
+        self.folder_btn = QPushButton(tr("common.browse"))
         self.folder_btn.clicked.connect(self.select_folder)
         folder_layout.addWidget(self.folder_edit)
         folder_layout.addWidget(self.folder_btn)
         layout.addLayout(folder_layout)
 
         check_layout = QHBoxLayout()
-        self.all_check = QCheckBox("Выбрать все игры")
+        self.all_check = QCheckBox(tr("exporter.select_all_check"))
         self.all_check.stateChanged.connect(self.toggle_all)
-        self.json_check = QCheckBox("Включить games_data.json")
+        self.json_check = QCheckBox(tr("exporter.include_json_check"))
         check_layout.addWidget(self.all_check)
         check_layout.addWidget(self.json_check)
         layout.addLayout(check_layout)
 
-        layout.addWidget(QLabel("Выберите игры для экспорта:"))
+        layout.addWidget(QLabel(tr("exporter.select_games_label")))
         self.list_widget = QListWidget()
         for game in self.games:
             item = QListWidgetItem(game['name'])
@@ -121,7 +128,7 @@ class PackerGUI(QWidget):
             self.list_widget.addItem(item)
         layout.addWidget(self.list_widget)
         
-        self.ok_btn = QPushButton("НАЧАТЬ ЭКСПОРТ")
+        self.ok_btn = QPushButton(tr("exporter.start_export_btn"))
         self.ok_btn.setObjectName("ExportBtn")
         self.ok_btn.clicked.connect(self.start_export)
         layout.addWidget(self.ok_btn)
@@ -131,7 +138,7 @@ class PackerGUI(QWidget):
             self.list_widget.item(i).setCheckState(Qt.CheckState.Checked if state == 2 else Qt.CheckState.Unchecked)
 
     def select_folder(self):
-        folder = QFileDialog.getExistingDirectory(self, "Выбрать папку для сохранения")
+        folder = QFileDialog.getExistingDirectory(self, tr("exporter.select_folder_dialog_title"))
         if folder:
             self.selected_folder = folder
             self.folder_edit.setText(folder)
@@ -139,10 +146,10 @@ class PackerGUI(QWidget):
     def start_export(self):
         selected = [g for i, g in enumerate(self.games) if self.list_widget.item(i).checkState() == Qt.CheckState.Checked]
         if not selected and not self.json_check.isChecked():
-            QMessageBox.warning(self, "Ошибка", "Выберите игры или включите экспорт games_data.json!")
+            QMessageBox.warning(self, tr("common.error"), tr("exporter.error_no_games"))
             return
         if not self.selected_folder:
-            QMessageBox.warning(self, "Ошибка", "Выберите папку для сохранения!")
+            QMessageBox.warning(self, tr("common.error"), tr("exporter.error_no_folder"))
             return
         self.hide()
         self.progress_win = ProgressWindow(selected, self.selected_folder, self.name_edit.text(), self.json_check.isChecked())
@@ -151,11 +158,11 @@ class PackerGUI(QWidget):
 class ProgressWindow(QWidget):
     def __init__(self, selected_games, output_path, master_name, include_json):
         super().__init__()
-        self.setWindowTitle("Экспорт...")
+        self.setWindowTitle(tr("exporter.progress_title"))
         self.setFixedSize(450, 400)
         layout = QVBoxLayout(self)
         self.master_bar = QProgressBar()
-        layout.addWidget(QLabel("ОБЩИЙ ПРОГРЕСС:"))
+        layout.addWidget(QLabel(tr("exporter.total_progress_label")))
         layout.addWidget(self.master_bar)
         self.scroll = QScrollArea()
         self.scroll.setObjectName("ExportScrollArea")
@@ -165,7 +172,7 @@ class ProgressWindow(QWidget):
         self.game_bars = {}
         for game in selected_games:
             g_layout = QVBoxLayout()
-            g_layout.addWidget(QLabel(f"Игра: {game['name']}"))
+            g_layout.addWidget(QLabel(tr("exporter.game_label", name=game['name'])))
             bar = QProgressBar()
             g_layout.addWidget(bar)
             self.scroll_layout.addLayout(g_layout)
@@ -186,6 +193,7 @@ class ProgressWindow(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
     apply_global_style(app)
     window = PackerGUI()
     window.show()

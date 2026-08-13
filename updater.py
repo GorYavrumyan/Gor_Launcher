@@ -7,17 +7,37 @@ import zipfile
 import urllib.request
 
 from PyQt6.QtCore import QThread, pyqtSignal
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QProgressBar, QMessageBox
 )
 
 from style_loader import apply_global_style
+from lang_loader import tr
+
+def _find_favicon_path():
+    """Ищет favicon.ico рядом со скриптом, на уровень выше и в рабочей папке.
+    Если нигде не найден - возвращает путь рядом со скриптом (по умолчанию)
+    и выводит предупреждение в консоль, чтобы было видно, что иконка не найдена."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = []
+    if getattr(sys, "frozen", False):
+        candidates.append(os.path.dirname(sys.executable))
+    candidates.append(script_dir)
+    candidates.append(os.getcwd())
+    candidates.append(os.path.dirname(script_dir))
+    for d in candidates:
+        p = os.path.join(d, "favicon.ico")
+        if os.path.exists(p):
+            return p
+    print(f"[updater] favicon.ico не найден. Проверенные папки: {candidates}")
+    return os.path.join(script_dir, "favicon.ico")
 
 # ---------------------------------------------------------------------------
 # Настройки репозитория GitHub, откуда берётся обновление.
 # ---------------------------------------------------------------------------
-GITHUB_OWNER = "emmaekmalyan5-lang"
+GITHUB_OWNER = "GorYavrumyan"
 GITHUB_REPO = "Gor_Launcher"
 GITHUB_BRANCH = "main"
 
@@ -107,19 +127,18 @@ class UpdateWorker(QThread):
             if e.code == 404:
                 self.finished_signal.emit(
                     False,
-                    f"Файл version.json не найден в репозитории "
-                    f"({VERSION_FILE_PATH}). Проверьте, что он туда добавлен.",
+                    tr("updater.version_not_found_error", path=VERSION_FILE_PATH),
                 )
             else:
-                self.finished_signal.emit(False, f"Ошибка сети: {e}")
+                self.finished_signal.emit(False, tr("updater.network_error", error=e))
         except Exception as e:
-            self.finished_signal.emit(False, f"Ошибка: {e}")
+            self.finished_signal.emit(False, tr("updater.generic_error", error=e))
 
     # ------------------------------------------------------------------ #
     # Проверка обновлений
     # ------------------------------------------------------------------ #
     def _fetch_remote_version(self):
-        self.status_signal.emit("Проверка обновлений...")
+        self.status_signal.emit(tr("updater.checking_status"))
         req = urllib.request.Request(
             VERSION_URL, headers={"User-Agent": "GOR-Launcher-Updater"}
         )
@@ -135,30 +154,30 @@ class UpdateWorker(QThread):
     # ------------------------------------------------------------------ #
     def _install_update(self):
         info = self._fetch_remote_version()
-        remote_version = info.get("version", "неизвестно")
+        remote_version = info.get("version", tr("updater.unknown_version"))
 
         with tempfile.TemporaryDirectory(prefix="gor_update_") as tmp_dir:
             if self._cancelled:
-                self.finished_signal.emit(False, "Обновление отменено.")
+                self.finished_signal.emit(False, tr("updater.update_cancelled"))
                 return
 
             archive_path = os.path.join(tmp_dir, "update_package.zip")
 
             # 1. Скачивание архива ветки репозитория во временную папку СИСТЕМЫ
-            self.status_signal.emit("Загрузка архива с GitHub...")
+            self.status_signal.emit(tr("updater.downloading"))
             self._download(ARCHIVE_URL, archive_path)
             if self._cancelled:
-                self.finished_signal.emit(False, "Обновление отменено.")
+                self.finished_signal.emit(False, tr("updater.update_cancelled"))
                 return
 
             # 2. Распаковка во временную папку
-            self.status_signal.emit("Распаковка архива...")
+            self.status_signal.emit(tr("updater.extracting"))
             extract_dir = os.path.join(tmp_dir, "extracted")
             os.makedirs(extract_dir, exist_ok=True)
             with zipfile.ZipFile(archive_path, "r") as zf:
                 zf.extractall(extract_dir)
             if self._cancelled:
-                self.finished_signal.emit(False, "Обновление отменено.")
+                self.finished_signal.emit(False, tr("updater.update_cancelled"))
                 return
 
             # GitHub всегда оборачивает содержимое ветки в единственную папку
@@ -168,24 +187,22 @@ class UpdateWorker(QThread):
             if source_root is None:
                 self.finished_signal.emit(
                     False,
-                    "Не удалось найти корневую папку репозитория внутри "
-                    "скачанного архива.",
+                    tr("updater.source_not_found"),
                 )
                 return
 
             # 3. Безопасное точечное копирование файлов в проект
-            self.status_signal.emit("Безопасное обновление файлов...")
+            self.status_signal.emit(tr("updater.safe_updating"))
             self._safe_copy_files(source_root, get_project_root())
             if self._cancelled:
-                self.finished_signal.emit(False, "Обновление отменено.")
+                self.finished_signal.emit(False, tr("updater.update_cancelled"))
                 return
 
         # tmp_dir удаляется автоматически при выходе из контекстного менеджера
-        self.status_signal.emit("Обновление завершено!")
+        self.status_signal.emit(tr("updater.update_done_status"))
         self.finished_signal.emit(
             True,
-            f"Обновление до версии {remote_version} успешно установлено.\n"
-            f"Перезапустите лаунчер, чтобы применить изменения.",
+            tr("updater.update_done_message", version=remote_version),
         )
 
     def _locate_project_source(self, extract_dir):
@@ -242,19 +259,19 @@ class UpdateWorker(QThread):
 
             # Правило 1: любая папка - полностью пропускается
             if os.path.isdir(src_path):
-                self.status_signal.emit(f"Пропуск папки (не трогаем): {entry}")
+                self.status_signal.emit(tr("updater.skip_folder", name=entry))
                 self.progress_signal.emit(int((idx + 1) / total * 100))
                 continue
 
             # Правило 2: пользовательская база данных неприкосновенна
             if entry == PROTECTED_FILE:
-                self.status_signal.emit(f"Пропуск защищённого файла: {entry}")
+                self.status_signal.emit(tr("updater.skip_protected", name=entry))
                 self.progress_signal.emit(int((idx + 1) / total * 100))
                 continue
 
             # Правило 3: остальные одиночные файлы обновляем поверх старых
             dest_path = os.path.join(project_root, entry)
-            self.status_signal.emit(f"Обновление файла: {entry}")
+            self.status_signal.emit(tr("updater.updating_file", name=entry))
             shutil.copy2(src_path, dest_path)
             self.progress_signal.emit(int((idx + 1) / total * 100))
 
@@ -270,7 +287,8 @@ class UpdaterDialog(QDialog):
         self.latest_info = None
 
         self.setObjectName("EditorDialog")
-        self.setWindowTitle("Обновление GOR Launcher")
+        self.setWindowTitle(tr("updater.window_title"))
+        self.setWindowIcon(QIcon(_find_favicon_path()))
         self.setFixedWidth(550)
 
         self._init_ui()
@@ -280,11 +298,11 @@ class UpdaterDialog(QDialog):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        title = QLabel("Обновление GOR Launcher")
+        title = QLabel(tr("updater.window_title"))
         layout.addWidget(title)
 
         self.status_label = QLabel(
-            f"Текущая версия: {self.current_version}.\nНажмите «ПРОВЕРИТЬ ОБНОВЛЕНИЯ»."
+            tr("updater.status_initial", version=self.current_version)
         )
         self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
@@ -295,14 +313,14 @@ class UpdaterDialog(QDialog):
 
         btn_layout = QHBoxLayout()
 
-        self.check_btn = QPushButton("ПРОВЕРИТЬ ОБНОВЛЕНИЯ")
+        self.check_btn = QPushButton(tr("updater.check_btn"))
         self.check_btn.clicked.connect(self.check_updates)
 
-        self.install_btn = QPushButton("УСТАНОВИТЬ ОБНОВЛЕНИЕ")
+        self.install_btn = QPushButton(tr("updater.install_btn"))
         self.install_btn.clicked.connect(self.install_update)
         self.install_btn.setEnabled(False)
 
-        self.cancel_btn = QPushButton("ОТМЕНА")
+        self.cancel_btn = QPushButton(tr("common.cancel"))
         self.cancel_btn.setObjectName("CancelBtn")
         self.cancel_btn.clicked.connect(self.cancel_or_close)
 
@@ -333,9 +351,8 @@ class UpdaterDialog(QDialog):
         if self.latest_info is None:
             return
         reply = QMessageBox.question(
-            self, "Подтверждение",
-            "Установить обновление сейчас?\nВсе папки и файл games_data.json "
-            "затронуты не будут.",
+            self, tr("updater.confirm_title"),
+            tr("updater.confirm_text"),
         )
         if reply != QMessageBox.StandardButton.Yes:
             return
@@ -344,16 +361,15 @@ class UpdaterDialog(QDialog):
 
     def _on_check_result(self, info):
         self.latest_info = info
-        remote_version = info.get("version", "неизвестно")
+        remote_version = info.get("version", tr("updater.unknown_version"))
         if remote_version == self.current_version:
             self.status_label.setText(
-                f"У вас уже установлена последняя версия ({self.current_version})."
+                tr("updater.already_latest", version=self.current_version)
             )
             self.install_btn.setEnabled(False)
         else:
             self.status_label.setText(
-                f"Доступна новая версия: {remote_version} "
-                f"(текущая: {self.current_version})."
+                tr("updater.update_available", remote=remote_version, current=self.current_version)
             )
             self.install_btn.setEnabled(True)
 
@@ -362,14 +378,22 @@ class UpdaterDialog(QDialog):
         self.status_label.setText(message)
         if success:
             self.current_version = get_local_version()
-            QMessageBox.information(self, "Обновление GOR Launcher", message)
-        elif "отменено" not in message.lower():
-            QMessageBox.warning(self, "Обновление GOR Launcher", message)
+            reply = QMessageBox.question(
+                self, tr("updater.window_title"),
+                tr("updater.restart_prompt", message=message)
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                # Ленивый импорт - чтобы не создавать циклическую зависимость
+                # bridge_loader <-> updater (bridge_loader сам импортирует updater).
+                from bridge_loader import restart_launcher
+                restart_launcher(confirm=False)
+        elif "отменено" not in message.lower() and "cancel" not in message.lower():
+            QMessageBox.warning(self, tr("updater.window_title"), message)
 
     def cancel_or_close(self):
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
-            self.status_label.setText("Отмена обновления...")
+            self.status_label.setText(tr("updater.cancelling"))
         else:
             self.reject()
 
@@ -382,6 +406,7 @@ class UpdaterDialog(QDialog):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(_find_favicon_path()))
     apply_global_style(app)
     dialog = UpdaterDialog()
     dialog.show()

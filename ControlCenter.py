@@ -15,14 +15,15 @@ from PyQt6.QtCore import Qt, QUrl, QSize, QRect, QRectF, QEvent, QPointF
 from PyQt6.QtGui import QIcon, QPainter, QColor, QPen, QFont
 
 from style_loader import apply_global_style
+from lang_loader import tr
 
 
 EMPTY_PAGE = """
 <html><head><style>
-body { background:#0a0a0a;color:#666;font-family:'Segoe UI',Arial,sans-serif;
-       display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-size:16px;}
-</style></head><body><div>⬅️ Выберите аддон слева, чтобы открыть его интерфейс</div></body></html>
-"""
+body {{ background:#0a0a0a;color:#666;font-family:'Segoe UI',Arial,sans-serif;
+       display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-size:16px;}}
+</style></head><body><div>{text}</div></body></html>
+""".format(text=tr("control_center.empty_page_text"))
 
 ERROR_PAGE_TEMPLATE = """
 <html><head><style>
@@ -33,7 +34,7 @@ body {{background:#0a0a0a;color:#f0f0f0;font-family:'Segoe UI',Arial,sans-serif;
 .title {{color:#e74c3c;font-size:20px;font-weight:bold;margin-bottom:10px;}}
 .msg {{color:#ccc;font-size:14px;}}
 </style></head><body>
-<div class="box"><div class="icon">⚠️</div><div class="title">Не удалось загрузить аддон</div>
+<div class="box"><div class="icon">⚠️</div><div class="title">""" + tr("control_center.load_error_title") + """</div>
 <div class="msg">{message}</div></div></body></html>
 """
 
@@ -196,17 +197,17 @@ class MonitoringTab(QWidget):
         outer.addWidget(scroll)
 
         # --- Карточка статуса ---
-        self.status_card, status_lay = make_card("Статус аддона")
+        self.status_card, status_lay = make_card(tr("control_center.status_card_title"))
         header = QHBoxLayout()
         self.big_name = QLabel("—")
         self.big_name.setObjectName("AddonBigName")
-        self.status_pill = QLabel("НЕИЗВЕСТНО")
+        self.status_pill = QLabel(tr("control_center.status_unknown"))
         self.status_pill.setObjectName("StatusPill")
         header.addWidget(self.big_name, stretch=1)
         header.addWidget(self.status_pill, alignment=Qt.AlignmentFlag.AlignRight)
         status_lay.addLayout(header)
 
-        self.status_desc = QLabel("Выберите аддон слева, чтобы увидеть подробности.")
+        self.status_desc = QLabel(tr("control_center.select_addon_hint"))
         self.status_desc.setObjectName("AddonRowSub")
         self.status_desc.setWordWrap(True)
         status_lay.addWidget(self.status_desc)
@@ -214,7 +215,7 @@ class MonitoringTab(QWidget):
         self.root_lay.addWidget(self.status_card)
 
         # --- Карточка лога активности ---
-        self.log_card, log_lay = make_card("Лог активности / запросы аддона")
+        self.log_card, log_lay = make_card(tr("control_center.log_card_title"))
         self.log_list = QListWidget()
         self.log_list.setObjectName("ActivityLog")
         self.log_list.setMinimumHeight(220)
@@ -222,21 +223,21 @@ class MonitoringTab(QWidget):
         self.root_lay.addWidget(self.log_card)
 
         # --- Карточка интерактивных элементов управления ---
-        self.controls_card, ctrl_lay = make_card("Управление аддоном")
+        self.controls_card, ctrl_lay = make_card(tr("control_center.controls_card_title"))
         btn_row = QHBoxLayout()
 
         # Акцентная кнопка (стиль #PrimaryBtn из style.qss)
-        self.approve_btn = QPushButton("✅ Подтвердить запрос")
+        self.approve_btn = QPushButton(tr("control_center.approve_btn"))
         self.approve_btn.setObjectName("PrimaryBtn")
         self.approve_btn.clicked.connect(lambda: self._fire("approve"))
 
         # Обычная кнопка — без objectName, берёт базовый стиль QPushButton
-        self.restart_btn = QPushButton("🔁 Перезапустить аддон")
+        self.restart_btn = QPushButton(tr("control_center.restart_addon_btn"))
         self.restart_btn.clicked.connect(lambda: self._fire("restart"))
 
         # Красная "опасная" кнопка — переиспользуем уже существующий
         # в style.qss стиль #StopBtn (тот же, что и для остановки процесса)
-        self.revoke_btn = QPushButton("⛔ Отклонить / Отключить")
+        self.revoke_btn = QPushButton(tr("control_center.revoke_btn"))
         self.revoke_btn.setObjectName("StopBtn")
         self.revoke_btn.clicked.connect(lambda: self._fire("revoke"))
 
@@ -261,7 +262,7 @@ class MonitoringTab(QWidget):
     def show_empty(self):
         self.current_addon = None
         self.big_name.setText("—")
-        self.status_desc.setText("Выберите аддон слева, чтобы увидеть подробности.")
+        self.status_desc.setText(tr("control_center.select_addon_hint"))
         self._set_status_pill(None)
         self.log_list.clear()
         self._set_enabled(False)
@@ -271,13 +272,13 @@ class MonitoringTab(QWidget):
         state="on"/"off" (тот же приём, что и favorite=true у GameCard
         в GorLauncher), чтобы цвет брался из style.qss, а не из кода."""
         if enabled is None:
-            self.status_pill.setText("НЕИЗВЕСТНО")
+            self.status_pill.setText(tr("control_center.status_unknown"))
             self.status_pill.setProperty("state", "")
         elif enabled:
-            self.status_pill.setText("● АКТИВЕН")
+            self.status_pill.setText(tr("control_center.status_active"))
             self.status_pill.setProperty("state", "on")
         else:
-            self.status_pill.setText("● ВЫКЛЮЧЕН")
+            self.status_pill.setText(tr("control_center.status_inactive"))
             self.status_pill.setProperty("state", "off")
         # переприменяем стиль после смены динамического свойства
         self.status_pill.style().unpolish(self.status_pill)
@@ -290,14 +291,14 @@ class MonitoringTab(QWidget):
         self._set_status_pill(addon_info["enabled"])
 
         config = addon_info.get("config", {})
-        desc = config.get("description") or "Описание для этого аддона не указано в config.json."
+        desc = config.get("description") or tr("control_center.no_description")
         version = config.get("version", "—")
-        self.status_desc.setText(f"{desc}\nВерсия: {version}")
+        self.status_desc.setText(tr("control_center.desc_version", desc=desc, version=version))
 
         self.log_list.clear()
         entries = self._load_activity(addon_info["path"])
         if not entries:
-            self.log_list.addItem(QListWidgetItem("Нет записей активности для этого аддона."))
+            self.log_list.addItem(QListWidgetItem(tr("control_center.no_activity")))
         else:
             icons = {"request": "📨", "change": "✏️", "info": "ℹ️", "error": "⚠️"}
             for entry in entries:
@@ -321,10 +322,10 @@ class MonitoringTab(QWidget):
 
         # Демонстрационные записи (fallback), если реального лога нет
         sample_actions = [
-            ("request", "Аддон запросил доступ к папке сохранений."),
-            ("change", "Изменена настройка разрешения экрана до 1920x1080."),
-            ("info", "Аддон инициализирован без ошибок."),
-            ("error", "Не удалось найти файл конфигурации потоковой передачи."),
+            ("request", tr("control_center.sample_request")),
+            ("change", tr("control_center.sample_change")),
+            ("info", tr("control_center.sample_info")),
+            ("error", tr("control_center.sample_error")),
         ]
         now = datetime.now()
         return [
@@ -340,7 +341,7 @@ class ControlCenter(QDialog):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("GOR Control Center - Управление аддонами")
+        self.setWindowTitle(tr("control_center.window_title"))
         self.resize(1200, 760)
 
         self.current_web_path = None
@@ -373,11 +374,11 @@ class ControlCenter(QDialog):
         self.web_view = QWebEngineView()
         self.web_view.loadFinished.connect(self.on_load_finished)
         self.web_view.setHtml(EMPTY_PAGE)
-        self.tabs.addTab(self.web_view, "🌐 Просмотр")
+        self.tabs.addTab(self.web_view, tr("control_center.tab_view"))
 
         # Вкладка 2: мониторинг аддона
         self.monitoring_tab = MonitoringTab(on_action=self.handle_monitor_action)
-        self.tabs.addTab(self.monitoring_tab, "📊 Мониторинг")
+        self.tabs.addTab(self.monitoring_tab, tr("control_center.tab_monitoring"))
 
         splitter.addWidget(self.addon_list)
         splitter.addWidget(self.tabs)
@@ -441,7 +442,7 @@ class ControlCenter(QDialog):
             item = QListWidgetItem(name)
             item.setData(Qt.ItemDataRole.UserRole, addon_path)
             version = config.get("version")
-            item.setData(ROLE_SUBTITLE, f"v{version}" if version else "версия неизвестна")
+            item.setData(ROLE_SUBTITLE, f"v{version}" if version else tr("control_center.version_unknown"))
             item.setData(ROLE_ENABLED, enabled)
             if info["icon_path"]:
                 item.setIcon(QIcon(info["icon_path"]))
@@ -468,7 +469,7 @@ class ControlCenter(QDialog):
         if not web_path or not os.path.exists(web_path):
             self.web_view.setHtml(
                 ERROR_PAGE_TEMPLATE.format(
-                    message=f"Файл index.html не найден по пути:<br><code>{web_path}</code>"
+                    message=tr("control_center.web_not_found", path=web_path)
                 )
             )
             return
@@ -478,7 +479,7 @@ class ControlCenter(QDialog):
         if not ok:
             self.web_view.setHtml(
                 ERROR_PAGE_TEMPLATE.format(
-                    message="Аддон не смог загрузиться. Проверьте файлы web/index.html."
+                    message=tr("control_center.addon_load_failed")
                 )
             )
 
@@ -517,7 +518,7 @@ class ControlCenter(QDialog):
             with open(data_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
         except Exception as e:
-            QMessageBox.warning(self, "Ошибка сохранения", str(e))
+            QMessageBox.warning(self, tr("control_center.save_error_title"), str(e))
 
     # ------------------------------------------------------------------
     # Обработка кнопок на карточке "Управление аддоном"
@@ -528,13 +529,13 @@ class ControlCenter(QDialog):
             return
 
         if action_name == "approve":
-            QMessageBox.information(self, "Готово", f"Запрос аддона «{info['name']}» подтверждён.")
+            QMessageBox.information(self, tr("control_center.approve_done_title"), tr("control_center.approve_done_text", name=info['name']))
         elif action_name == "restart":
-            QMessageBox.information(self, "Перезапуск", f"Аддон «{info['name']}» будет перезапущен.")
+            QMessageBox.information(self, tr("control_center.restart_title"), tr("control_center.restart_text", name=info['name']))
         elif action_name == "revoke":
             reply = QMessageBox.question(
-                self, "Отключение аддона",
-                f"Отключить «{info['name']}»?",
+                self, tr("control_center.revoke_confirm_title"),
+                tr("control_center.revoke_confirm_text", name=info['name']),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
@@ -565,6 +566,7 @@ if __name__ == "__main__":
         )
 
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
 
     # Fusion нужен, чтобы кастомный QSS для ::indicator у QCheckBox (тумблер
     # включения аддона) рисовался полностью средствами Qt, а не нативным

@@ -1,8 +1,10 @@
 import json
 import math
+import os
 import random
+import sys
 from PyQt6.QtCore import QPointF, QRectF, Qt, QTimer, QUrl
-from PyQt6.QtGui import QBrush, QColor, QPainter, QPen, QPixmap, QFont
+from PyQt6.QtGui import QBrush, QColor, QPainter, QPen, QPixmap, QFont, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QDialog,
@@ -13,6 +15,26 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from lang_loader import tr
+
+def _find_favicon_path():
+    """Ищет favicon.ico рядом со скриптом, на уровень выше и в рабочей папке.
+    Если нигде не найден - возвращает путь рядом со скриптом (по умолчанию)
+    и выводит предупреждение в консоль, чтобы было видно, что иконка не найдена."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = []
+    if getattr(sys, "frozen", False):
+        candidates.append(os.path.dirname(sys.executable))
+    candidates.append(script_dir)
+    candidates.append(os.getcwd())
+    candidates.append(os.path.dirname(script_dir))
+    for d in candidates:
+        p = os.path.join(d, "favicon.ico")
+        if os.path.exists(p):
+            return p
+    print(f"[fortune_wheel] favicon.ico не найден. Проверенные папки: {candidates}")
+    return os.path.join(script_dir, "favicon.ico")
 
 # QSoundEffect живёт в отдельном модуле QtMultimedia, который не всегда
 # установлен вместе с PyQt6. Импортируем его безопасно, чтобы отсутствие
@@ -27,19 +49,24 @@ except ImportError:
 
 class FortuneWheelDialog(QDialog):
 
-    def __init__(self, parent=None, json_path="games_data.json", launch_callback=None):
+    def __init__(self, parent=None, json_path="games_data.json", qss_path="style.qss", launch_callback=None):
         super().__init__(parent)
-        self.setWindowTitle("Случайная игра — Колесо Фортуны")
-        self.resize(600, 650)
-        self.setMinimumSize(420, 500)
-        self.setStyleSheet(
-            "background-color: #1e1e1e; color: white; font-family: Arial;"
-        )
+        self.setObjectName("FortuneWheelDialog")
+        self.setWindowTitle(tr("wheel.window_title"))
+        self.setWindowIcon(QIcon(_find_favicon_path()))
+        self.resize(700, 780)
+        self.setMinimumSize(480, 560)
 
         self.json_path = json_path
+        self.qss_path = qss_path
         self.launch_callback = launch_callback  # Ссылка на функцию запуска игры из вашего лаунчера
         self.load_error = None
-        
+
+        # Подхватываем общий стиль проекта из style.qss (тот же файл,
+        # что используется GorLauncher/ControlCenter и т.д.), чтобы окно
+        # колеса выглядело единообразно с остальным приложением.
+        self.apply_stylesheet()
+
         # Сразу загружаем игры при инициализации
         self.games = self.load_games()
 
@@ -50,6 +77,33 @@ class FortuneWheelDialog(QDialog):
 
         self.init_ui()
         self.init_sounds()
+
+    def apply_stylesheet(self):
+        """Ищет и применяет style.qss - единый файл стилей проекта.
+
+        Логика поиска такая же, как у load_games: сначала пробуем путь
+        как есть, затем - рядом с этим скриптом (на случай запуска из
+        лаунчера с другим рабочим каталогом).
+        """
+        candidate_paths = [self.qss_path]
+        if not os.path.isabs(self.qss_path):
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            candidate_paths.append(os.path.join(script_dir, self.qss_path))
+
+        for path in candidate_paths:
+            if os.path.isfile(path):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        self.setStyleSheet(f.read())
+                    return
+                except Exception as e:
+                    print(f"Не удалось прочитать style.qss ({path}): {e}")
+
+        print(
+            "style.qss не найден (пробовал: "
+            + ", ".join(candidate_paths)
+            + "). Используются стандартные стили Qt."
+        )
 
     def load_games(self):
         """Собирает единый список игр из games_data.json.
@@ -66,8 +120,6 @@ class FortuneWheelDialog(QDialog):
         Дедуплицируем по "id", если он есть, чтобы одна и та же игра
         не попала в колесо дважды (например если её id повторяется).
         """
-        import os
-
         candidate_paths = [self.json_path]
         if not os.path.isabs(self.json_path):
             # Если относительный путь не найден от текущей рабочей директории
@@ -83,9 +135,7 @@ class FortuneWheelDialog(QDialog):
                 break
 
         if actual_path is None:
-            self.load_error = (
-                f"Файл не найден.\nПробовал:\n" + "\n".join(candidate_paths)
-            )
+            self.load_error = tr("wheel.file_not_found", paths="\n".join(candidate_paths))
             print(f"Ошибка загрузки игр: {self.load_error}")
             return []
 
@@ -93,7 +143,7 @@ class FortuneWheelDialog(QDialog):
             with open(actual_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as e:
-            self.load_error = f"{type(e).__name__}: {e}\nПуть: {actual_path}"
+            self.load_error = tr("wheel.read_error", error_type=type(e).__name__, error=e, path=actual_path)
             print(f"Ошибка загрузки игр: {self.load_error}")
             return []
 
@@ -132,9 +182,9 @@ class FortuneWheelDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # Заголовок
-        self.title_label = QLabel("Во что сыграть сегодня?")
+        self.title_label = QLabel(tr("wheel.default_title"))
+        self.title_label.setObjectName("WheelTitleLabel")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.title_label.setStyleSheet("font-size: 22px; font-weight: bold; margin: 10px;")
         layout.addWidget(self.title_label)
 
         # Иконка выбранной игры (появляется после остановки колеса)
@@ -145,34 +195,21 @@ class FortuneWheelDialog(QDialog):
 
         # Область для колеса — растягивается вместе с окном
         self.wheel_widget = WheelWidget(self)
-        self.wheel_widget.setMinimumSize(300, 300)
+        self.wheel_widget.setMinimumSize(360, 360)
         self.wheel_widget.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
         layout.addWidget(self.wheel_widget, 1)
 
-        # Кнопка вращения
-        self.spin_btn = QPushButton("КРУТИТЬ КОЛЕСО!", self)
-        self.spin_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #ffaa00; color: #1e1e1e; font-size: 16px; 
-                font-weight: bold; border-radius: 10px; padding: 12px;
-            }
-            QPushButton:hover { background-color: #ffbb33; }
-            QPushButton:pressed { background-color: #cc8800; }
-        """)
+        # Кнопка вращения (использует акцентный стиль #PrimaryBtn из style.qss)
+        self.spin_btn = QPushButton(tr("wheel.spin_btn"), self)
+        self.spin_btn.setObjectName("PrimaryBtn")
         self.spin_btn.clicked.connect(self.start_spinning)
         layout.addWidget(self.spin_btn)
 
         # Кнопка «Играть» (скрыта до остановки колеса)
-        self.play_btn = QPushButton("ИГРАТЬ В ВЫБРАННУЮ ИГРУ", self)
-        self.play_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2ecc71; color: white; font-size: 16px; 
-                font-weight: bold; border-radius: 10px; padding: 12px;
-            }
-            QPushButton:hover { background-color: #27ae60; }
-        """)
+        self.play_btn = QPushButton(tr("wheel.play_btn"), self)
+        self.play_btn.setObjectName("SuccessBtn")
         self.play_btn.hide()
         self.play_btn.clicked.connect(self.launch_selected_game)
         layout.addWidget(self.play_btn)
@@ -181,14 +218,21 @@ class FortuneWheelDialog(QDialog):
 
         if not self.games:
             if self.load_error:
-                self.title_label.setText(f"Ошибка загрузки:\n{self.load_error}")
+                self.set_title_text(tr("wheel.load_error", error=self.load_error), error=True)
             else:
-                self.title_label.setText(
-                    "games_data.json загружен, но список игр пуст\n"
-                    "(нет ни одной записи в groups/standalone)"
+                self.set_title_text(
+                    tr("wheel.empty_list"),
+                    error=True,
                 )
-            self.title_label.setStyleSheet("font-size: 14px; font-weight: bold; margin: 10px; color: #ff6666;")
             self.spin_btn.setEnabled(False)
+
+    def set_title_text(self, text, error=False):
+        """Меняет текст заголовка и переключает свойство error=true/false,
+        которое обрабатывается в style.qss (QLabel#WheelTitleLabel[error="true"])."""
+        self.title_label.setText(text)
+        self.title_label.setProperty("error", "true" if error else "false")
+        self.title_label.style().unpolish(self.title_label)
+        self.title_label.style().polish(self.title_label)
 
     def init_sounds(self):
         # Опционально: звук тиков при вращении и победный звук.
@@ -208,15 +252,13 @@ class FortuneWheelDialog(QDialog):
 
         if self.spinning or not self.games:
             if not self.games:
-                self.title_label.setText("Список игр пуст! Нечего крутить.")
-                self.title_label.setStyleSheet("font-size: 14px; font-weight: bold; margin: 10px; color: #ff6666;")
+                self.set_title_text(tr("wheel.nothing_to_spin"), error=True)
             return
 
         self.play_btn.hide()
         self.result_icon_label.clear()
-        self.title_label.setText("Во что сыграть сегодня?")
-        self.title_label.setStyleSheet("font-size: 22px; font-weight: bold; margin: 10px;")
-        
+        self.set_title_text(tr("wheel.default_title"), error=False)
+
         self.spinning = True
         self.spin_btn.setEnabled(False)
 
@@ -263,7 +305,7 @@ class FortuneWheelDialog(QDialog):
 
     def on_spin_finished(self):
         self.selected_game = self.games[self.winning_index]
-        self.title_label.setText(f"Выпало: {self.selected_game.get('name', 'Игра')}!")
+        self.set_title_text(tr("wheel.result", name=self.selected_game.get('name', tr("wheel.default_game_name"))), error=False)
 
         icon_path = self.selected_game.get("icon")
         pixmap = QPixmap(icon_path) if icon_path else QPixmap()
@@ -335,7 +377,7 @@ class WheelWidget(QWidget):
 
         width = self.width()
         height = self.height()
-        side = min(width, height) - 40
+        side = min(width, height) - 16
 
         # Центр колеса
         center = QPointF(width / 2.0, height / 2.0)
@@ -351,9 +393,18 @@ class WheelWidget(QWidget):
 
         radius = side / 2.0
 
-        # Увеличенный размер иконки и сдвиг к самому краю колеса
-        icon_size = int(max(40, min(140, radius * 0.7, angle_step * 4.0)))
-        icon_radius = radius * 0.72  # смещено ближе к краю колеса
+        # Иконки прижимаем к самому краю колеса...
+        icon_radius = radius * 0.86
+
+        # ...но при этом ограничиваем их размер сразу двумя условиями:
+        # 1) чтобы соседние иконки не наезжали друг на друга (зависит от
+        #    реальной длины дуги между их центрами);
+        # 2) чтобы иконка не вылезала за пределы виджета (учитывает запас
+        #    в 20px, оставленный при расчёте side = min(w, h) - 40).
+        arc_gap = icon_radius * math.radians(angle_step)
+        max_by_gap = arc_gap * 0.92
+        max_by_edge = 2 * (radius + 8 - icon_radius)
+        icon_size = int(max(36, min(170, radius * 0.75, max_by_gap, max_by_edge)))
 
         # --- Шаг 1: Поворачиваем холст и рисуем секторы колеса ---
         painter.save()
@@ -404,9 +455,8 @@ class WheelWidget(QWidget):
 
 
 if __name__ == "__main__":
-    import sys
-
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(_find_favicon_path()))
     dlg = FortuneWheelDialog()
     dlg.show()
     sys.exit(app.exec())

@@ -4,16 +4,23 @@ import importlib.util
 import json
 import subprocess
 import hashlib
-from PyQt6.QtWidgets import QApplication, QPushButton
-from PyQt6.QtCore import Qt
+import time
+import tempfile
+import platform
+from PyQt6.QtWidgets import QApplication, QPushButton, QMessageBox
+from PyQt6.QtCore import Qt, QProcess, QCoreApplication
 
 from style_loader import apply_global_style
 from updater import UpdateWorker, get_local_version, UpdaterDialog
+from lang_loader import tr
 
 # Добавляем путь для импорта
 current_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
+
+# Флаг для subprocess.*, чтобы pip install не мигал окном терминала на Windows.
+NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
 
 # Попытка импортировать модули безопасным способом
 def safe_import(module_name):
@@ -43,8 +50,8 @@ def install_requirements(addon_path):
 
     print(f"Обнаружен requirements.txt в {addon_path}. Установка библиотек...")
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"])
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], creationflags=NO_WINDOW_FLAGS)
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file], creationflags=NO_WINDOW_FLAGS)
         with open(marker_file, 'w', encoding='utf-8') as f:
             f.write(req_hash)
         print("Все библиотеки успешно установлены!")
@@ -61,13 +68,77 @@ sunshine_control = safe_import("sunshine_control")
 exporter_editor = safe_import("exporter_editor")
 ControlCenter = safe_import("ControlCenter")
 
+# --------------------------------------------------------------------- #
+# Смена языка и перезапуск приложения
+# --------------------------------------------------------------------- #
+def change_language(lang_code):
+    """Устанавливает новый язык и перезапускает интерфейс."""
+    from lang_loader import set_language
+    set_language(lang_code)
+    restart_launcher(confirm=False)
+
+# --------------------------------------------------------------------- #
+# Полноценный перезапуск лаунчера через bridge_loader.
+# --------------------------------------------------------------------- #
+def restart_launcher(confirm=True):
+    """Надежный перезапуск GorLauncher с сохранением всех аддонов, обновлений и UI."""
+    if confirm:
+        reply = QMessageBox.question(
+            None, tr("launcher.restart_confirm_title"),
+            tr("launcher.restart_confirm_text")
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+    base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+    # Кандидаты для запускного файла
+    bridge_exe_candidate = os.path.join(base_dir, "bridge_loader.exe")
+    bridge_py_candidate = os.path.join(base_dir, "bridge_loader.py")
+    gor_exe_candidate = os.path.join(base_dir, "GorLauncher.exe")
+    gor_py_candidate = os.path.join(base_dir, "GorLauncher.py")
+
+    # Перезапускаем через bridge_loader
+    if os.path.isfile(bridge_exe_candidate):
+        cmd = [bridge_exe_candidate]
+    elif os.path.isfile(bridge_py_candidate):
+        cmd = [sys.executable, bridge_py_candidate]
+    elif os.path.isfile(gor_exe_candidate):
+        cmd = [gor_exe_candidate]
+    elif os.path.isfile(gor_py_candidate):
+        cmd = [sys.executable, gor_py_candidate]
+    else:
+        cmd = [sys.executable] + sys.argv
+
+    try:
+        creationflags = 0
+        if platform.system() == "Windows":
+            creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+            if hasattr(subprocess, "CREATE_BREAKAWAY_FROM_JOB"):
+                creationflags |= subprocess.CREATE_BREAKAWAY_FROM_JOB
+
+        subprocess.Popen(
+            cmd,
+            cwd=base_dir,
+            creationflags=creationflags,
+            close_fds=True
+        )
+    except Exception as e:
+        QMessageBox.critical(
+            None, tr("launcher.restart_error_title"),
+            tr("launcher.restart_error_text", error=e)
+        )
+        return
+
+    QApplication.closeAllWindows()
+    sys.exit(0)
+
+
 def run_control_center():
-    # Исправленный путь: берем директорию самого приложения
     base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     script_path = os.path.join(base_path, "ControlCenter.py")
     
     if os.path.exists(script_path):
-        # Запускаем, явно указывая полный путь к файлу
         subprocess.Popen([sys.executable, script_path])
 
 def load_addons(launcher):
@@ -99,7 +170,6 @@ def load_addons(launcher):
             start_filename = config.get("start_file")
             if not start_filename: continue
 
-            # Автоматическая установка библиотек перед загрузкой кода
             install_requirements(addon_path)
 
             core_script = os.path.join(core_dir, start_filename)
@@ -117,30 +187,52 @@ def load_addons(launcher):
     launcher.save_data()
 
     if control_center_found:
-        btn = QPushButton("⚙️ ADDON MANAGER")
+        btn = QPushButton(tr("launcher.addon_manager_btn"))
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.clicked.connect(run_control_center)
         header_lay = launcher.main_lay.itemAt(0).layout()
-        header_lay.insertWidget(2, btn)
+        
+        # Размещаем кнопку возле кнопки перезапуска и бургер-меню справа
+        restart_btn = launcher.findChild(QPushButton, "RestartBtn")
+        if restart_btn and header_lay.indexOf(restart_btn) != -1:
+            header_lay.insertWidget(header_lay.indexOf(restart_btn), btn)
+        elif hasattr(launcher, 'burger_btn') and header_lay.indexOf(launcher.burger_btn) != -1:
+            header_lay.insertWidget(header_lay.indexOf(launcher.burger_btn), btn)
+        else:
+            header_lay.addWidget(btn)
+
+
+def add_restart_button(launcher):
+    """Добавляет кнопку перезапуска."""
+    btn = QPushButton("🔄")
+    btn.setObjectName("RestartBtn")
+    btn.setToolTip(tr("launcher.restart_tooltip"))
+    btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    btn.setFixedSize(38, 38)
+    btn.clicked.connect(lambda: restart_launcher(confirm=True))
+    
+    header_lay = launcher.main_lay.itemAt(0).layout()
+    burger_idx = header_lay.indexOf(launcher.burger_btn)
+    if burger_idx != -1:
+        header_lay.insertWidget(burger_idx, btn)
+    else:
+        header_lay.addWidget(btn)
+
+
+def update_widget_style_property(widget, prop_name, prop_value):
+    """Вспомогательная функция для обновления динамических свойств QSS."""
+    widget.setProperty(prop_name, prop_value)
+    widget.style().unpolish(widget)
+    widget.style().polish(widget)
 
 
 # --------------------------------------------------------------------- #
 # Фоновая проверка обновлений при каждом запуске лаунчера.
-#
-# Проверка выполняется в отдельном QThread (см. updater.UpdateWorker),
-# поэтому не блокирует интерфейс лаунчера. Если найдена версия новее
-# текущей - в шапке лаунчера появляется кнопка "ЕСТЬ ОБНОВЛЕНИЕ", по
-# нажатию на которую открывается обычное окно UpdaterDialog. Если
-# обновлений нет или проверка не удалась (например, нет интернета) -
-# лаунчер просто продолжает работать как обычно, никаких окон/ошибок
-# пользователю не показывается.
 # --------------------------------------------------------------------- #
 def check_updates_in_background(launcher):
     current_version = get_local_version()
 
     checker = UpdateWorker(UpdateWorker.MODE_CHECK, current_version)
-    # Храним ссылку на поток на самом объекте лаунчера, чтобы его не
-    # удалил сборщик мусора до завершения проверки.
     launcher._update_checker = checker
 
     def on_check_result(info):
@@ -149,8 +241,6 @@ def check_updates_in_background(launcher):
             show_update_available_button(launcher, remote_version)
 
     def on_finished(success, message):
-        # Тихо игнорируем ошибку проверки (нет сети и т.п.) - это фоновая
-        # проверка, она не должна мешать пользователю пользоваться лаунчером.
         if not success:
             print(f"[updater] Фоновая проверка обновлений: {message}")
 
@@ -160,8 +250,6 @@ def check_updates_in_background(launcher):
 
 
 def show_update_available_button(launcher, remote_version):
-    # Если кнопка уже была добавлена (например, при повторном вызове) -
-    # не дублируем её.
     if getattr(launcher, "_update_btn_added", False):
         return
     launcher._update_btn_added = True
@@ -170,11 +258,19 @@ def show_update_available_button(launcher, remote_version):
         dialog = UpdaterDialog(launcher)
         dialog.exec()
 
-    btn = QPushButton(f"⬆️ ЕСТЬ ОБНОВЛЕНИЕ ({remote_version})")
+    btn = QPushButton(tr("launcher.update_available_btn", version=remote_version))
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.clicked.connect(open_updater)
     header_lay = launcher.main_lay.itemAt(0).layout()
-    header_lay.insertWidget(2, btn)
+    
+    # Размещаем кнопку обновления левее кнопки ADDON MANAGER или перезапуска
+    restart_btn = launcher.findChild(QPushButton, "RestartBtn")
+    if restart_btn and header_lay.indexOf(restart_btn) != -1:
+        header_lay.insertWidget(header_lay.indexOf(restart_btn), btn)
+    elif hasattr(launcher, 'burger_btn') and header_lay.indexOf(launcher.burger_btn) != -1:
+        header_lay.insertWidget(header_lay.indexOf(launcher.burger_btn), btn)
+    else:
+        header_lay.addWidget(btn)
 
 
 if __name__ == "__main__":
@@ -182,6 +278,7 @@ if __name__ == "__main__":
     apply_global_style(app)
     launcher = GORLauncher()
     load_addons(launcher)
+    add_restart_button(launcher)
     launcher.show()
     check_updates_in_background(launcher)
     sys.exit(app.exec())

@@ -11,10 +11,11 @@ from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QPushButton, QLineEdit, QLabel, QMessageBox, QHBoxLayout,
                              QGroupBox, QPlainTextEdit, QFrame, QTabWidget)
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
 
 from style_loader import apply_global_style
+from lang_loader import tr
 
 try:
     from PIL import Image
@@ -24,12 +25,17 @@ except ImportError:
 
 SUNSHINE_WEB_URL = "https://localhost:47990"
 
+# Флаг для subprocess.*, чтобы служебные консольные команды (tasklist, taskkill)
+# не открывали и не мигали окном терминала на Windows. На других ОС просто 0.
+NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
+
 
 def kill_sunshine():
     """Кроссплатформенное завершение процесса Sunshine."""
     if platform.system() == 'Windows':
         subprocess.run(["taskkill", "/f", "/im", "sunshine.exe"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                        creationflags=NO_WINDOW_FLAGS)
     else:
         subprocess.run(["pkill", "-f", "sunshine"],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -41,7 +47,8 @@ def is_sunshine_running():
         if platform.system() == 'Windows':
             result = subprocess.run(
                 ["tasklist", "/FI", "IMAGENAME eq sunshine.exe"],
-                capture_output=True, text=True, timeout=3
+                capture_output=True, text=True, timeout=3,
+                creationflags=NO_WINDOW_FLAGS
             )
             return "sunshine.exe" in result.stdout.lower()
         else:
@@ -72,10 +79,10 @@ class SyncWorker(QThread):
     def run(self):
         try:
             if not os.path.exists(self.games_data_path):
-                self.finished_signal.emit(False, "games_data.json не найден!")
+                self.finished_signal.emit(False, tr("sunshine.data_not_found"))
                 return
 
-            self.log_signal.emit("Чтение games_data.json...")
+            self.log_signal.emit(tr("sunshine_log.reading_data"))
             with open(self.games_data_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
@@ -94,9 +101,9 @@ class SyncWorker(QThread):
                             if app.get("name") in ["Desktop", "Steam Big Picture"]:
                                 sunshine_apps.append(app)
                 except Exception as e:
-                    self.log_signal.emit(f"Предупреждение: ошибка чтения apps.json: {e}")
+                    self.log_signal.emit(tr("sunshine_log.apps_json_warning", error=e))
 
-            self.log_signal.emit(f"Найдено игр: {len(all_games)}")
+            self.log_signal.emit(tr("sunshine_log.games_found", count=len(all_games)))
 
             for g in all_games:
                 raw_icon = g.get("icon", "")
@@ -114,12 +121,11 @@ class SyncWorker(QThread):
                                 final_icon_path = new_icon_path
                             else:
                                 self.log_signal.emit(
-                                    "Pillow не установлен, конвертация иконки пропущена "
-                                    f"для '{g['name']}', используется исходный файл."
+                                    tr("sunshine_log.pillow_missing", name=g['name'])
                                 )
                                 final_icon_path = raw_icon
                         except Exception as e:
-                            self.log_signal.emit(f"Ошибка конвертации иконки '{g['name']}': {e}")
+                            self.log_signal.emit(tr("sunshine_log.icon_convert_error", name=g['name'], error=e))
                             final_icon_path = raw_icon
                     else:
                         try:
@@ -128,7 +134,7 @@ class SyncWorker(QThread):
                             shutil.copy2(raw_icon, dest_path)
                             final_icon_path = dest_path
                         except Exception as e:
-                            self.log_signal.emit(f"Ошибка копирования иконки '{g['name']}': {e}")
+                            self.log_signal.emit(tr("sunshine_log.icon_copy_error", name=g['name'], error=e))
                             final_icon_path = raw_icon
 
                     if final_icon_path:
@@ -143,22 +149,22 @@ class SyncWorker(QThread):
                     "image-path": final_icon_path
                 }
                 sunshine_apps.append(app_entry)
-                self.log_signal.emit(f"Добавлено: {g['name']}")
+                self.log_signal.emit(tr("sunshine_log.game_added", name=g['name']))
 
             os.makedirs(os.path.dirname(self.apps_json_path), exist_ok=True)
             with open(self.apps_json_path, 'w', encoding='utf-8') as f:
                 json.dump({"env": {}, "apps": sunshine_apps}, f, indent=4, ensure_ascii=False)
 
-            self.log_signal.emit("apps.json сохранён. Перезапуск Sunshine...")
+            self.log_signal.emit(tr("sunshine_log.apps_saved_restart"))
 
             kill_sunshine()
             time.sleep(1.5)
             exe = os.path.join(self.sunshine_dir, "sunshine.exe")
             subprocess.Popen([exe], cwd=self.sunshine_dir)
 
-            self.finished_signal.emit(True, "Конфигурация обновлена и Sunshine перезапущен!")
+            self.finished_signal.emit(True, tr("sunshine_log.sync_success"))
         except Exception as e:
-            self.finished_signal.emit(False, f"Ошибка синхронизации: {e}")
+            self.finished_signal.emit(False, tr("sunshine_log.sync_error", error=e))
 
 
 class RestartWorker(QThread):
@@ -171,15 +177,15 @@ class RestartWorker(QThread):
 
     def run(self):
         try:
-            self.log_signal.emit("Остановка Sunshine...")
+            self.log_signal.emit(tr("sunshine_log.stopping"))
             kill_sunshine()
             time.sleep(1.5)
             exe = os.path.join(self.sunshine_dir, "sunshine.exe")
-            self.log_signal.emit("Запуск Sunshine...")
+            self.log_signal.emit(tr("sunshine_log.starting"))
             subprocess.Popen([exe], cwd=self.sunshine_dir)
-            self.finished_signal.emit(True, "Sunshine перезапущен.")
+            self.finished_signal.emit(True, tr("sunshine_log.restarted"))
         except Exception as e:
-            self.finished_signal.emit(False, f"Ошибка перезапуска: {e}")
+            self.finished_signal.emit(False, tr("sunshine_log.restart_error", error=e))
 
 
 class CredsWorker(QThread):
@@ -194,7 +200,7 @@ class CredsWorker(QThread):
 
     def run(self):
         try:
-            self.log_signal.emit("Остановка Sunshine перед сменой учётных данных...")
+            self.log_signal.emit(tr("sunshine_log.stopping_before_creds"))
             kill_sunshine()
             time.sleep(1.5)
             exe = os.path.join(self.sunshine_dir, "sunshine.exe")
@@ -203,21 +209,24 @@ class CredsWorker(QThread):
             # поэтому пароль на короткое время виден в списке процессов (Task Manager/ps).
             # Это ограничение самого sunshine.exe, а не этого скрипта - изменить без
             # поддержки другого способа передачи кредов на стороне Sunshine нельзя.
-            self.log_signal.emit("Применение новых учётных данных...")
-            subprocess.run([exe, "--creds", self.user, self.pwd], cwd=self.sunshine_dir)
+            self.log_signal.emit(tr("sunshine_log.applying_creds"))
+            subprocess.run([exe, "--creds", self.user, self.pwd], cwd=self.sunshine_dir,
+                            creationflags=NO_WINDOW_FLAGS)
 
-            self.log_signal.emit("Запуск Sunshine...")
+            self.log_signal.emit(tr("sunshine_log.starting"))
             subprocess.Popen([exe], cwd=self.sunshine_dir)
 
-            self.finished_signal.emit(True, "Данные авторизации применены, процесс запущен.")
+            self.finished_signal.emit(True, tr("sunshine_log.creds_applied"))
         except Exception as e:
-            self.finished_signal.emit(False, f"Ошибка применения учётных данных: {e}")
+            self.finished_signal.emit(False, tr("sunshine_log.creds_error", error=e))
 
+with open("version.json", "r", encoding="utf-8") as f:
+    version = json.load(f)["version"]
 
 class SunshineControlApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Sunshine Control Center")
+        self.setWindowTitle(tr("sunshine.window_title") + "   " + version)
         self.setFixedSize(480, 640)
 
         self.base_dir = os.getcwd()
@@ -244,7 +253,7 @@ class SunshineControlApp(QMainWindow):
         main_layout.setContentsMargins(20, 20, 20, 20)
         main_layout.setSpacing(14)
 
-        title = QLabel("SUNSHINE CONTROL")
+        title = QLabel(tr("sunshine.title"))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("font-size: 20px; color: #007acc;")
         main_layout.addWidget(title)
@@ -259,7 +268,7 @@ class SunshineControlApp(QMainWindow):
         home_layout.setSpacing(16)
 
         # --- БЛОК: СТАТУС В РЕАЛЬНОМ ВРЕМЕНИ ---
-        status_group = QGroupBox("📡 Статус")
+        status_group = QGroupBox(tr("sunshine.status_group"))
         status_layout = QHBoxLayout(status_group)
         status_layout.setSpacing(10)
 
@@ -270,12 +279,12 @@ class SunshineControlApp(QMainWindow):
         )
         status_layout.addWidget(self.status_indicator)
 
-        self.status_label = QLabel("Проверка...")
+        self.status_label = QLabel(tr("sunshine.checking"))
         status_layout.addWidget(self.status_label)
         status_layout.addStretch()
 
-        self.btn_web = QPushButton("🌐 Открыть веб-панель")
-        self.btn_web.setToolTip(f"Открыть {SUNSHINE_WEB_URL} в браузере по умолчанию")
+        self.btn_web = QPushButton(tr("sunshine.open_web_btn"))
+        self.btn_web.setToolTip(tr("sunshine.open_web_tooltip", url=SUNSHINE_WEB_URL))
         self.btn_web.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_web.clicked.connect(self.open_web_panel)
         status_layout.addWidget(self.btn_web)
@@ -283,21 +292,19 @@ class SunshineControlApp(QMainWindow):
         home_layout.addWidget(status_group)
 
         # --- БЛОК: СИНХРОНИЗАЦИЯ И УПРАВЛЕНИЕ ---
-        sync_group = QGroupBox("🎮 Управление")
+        sync_group = QGroupBox(tr("sunshine.control_group"))
         sync_layout = QVBoxLayout(sync_group)
         sync_layout.setSpacing(12)
 
-        self.btn_sync = QPushButton("🔄 ЗАПУСК И СИНХРОНИЗАЦИЯ SUNSHINE")
-        self.btn_sync.setToolTip(
-            "Считать games_data.json, обновить apps.json и перезапустить Sunshine"
-        )
+        self.btn_sync = QPushButton(tr("sunshine.sync_btn"))
+        self.btn_sync.setToolTip(tr("sunshine.sync_tooltip"))
         self.btn_sync.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_sync.clicked.connect(self.sync_games)
         sync_layout.addWidget(self.btn_sync)
 
-        self.btn_stop = QPushButton("🛑 ПРИНУДИТЕЛЬНО ОСТАНОВИТЬ SUNSHINE")
+        self.btn_stop = QPushButton(tr("sunshine.stop_btn"))
         self.btn_stop.setObjectName("StopBtn")
-        self.btn_stop.setToolTip("Немедленно завершить процесс Sunshine")
+        self.btn_stop.setToolTip(tr("sunshine.stop_tooltip"))
         self.btn_stop.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_stop.clicked.connect(self.stop_sunshine)
         sync_layout.addWidget(self.btn_stop)
@@ -305,7 +312,7 @@ class SunshineControlApp(QMainWindow):
         home_layout.addWidget(sync_group)
         home_layout.addStretch()
 
-        tabs.addTab(home_tab, "🎮 Главная")
+        tabs.addTab(home_tab, tr("sunshine.tab_home"))
 
         # ===================== ВКЛАДКА: АВТОРИЗАЦИЯ =====================
         auth_tab = QWidget()
@@ -313,25 +320,25 @@ class SunshineControlApp(QMainWindow):
         auth_tab_layout.setContentsMargins(12, 16, 12, 12)
         auth_tab_layout.setSpacing(16)
 
-        auth_group = QGroupBox("🔐 Учётные данные")
+        auth_group = QGroupBox(tr("sunshine.auth_group"))
         auth_layout = QVBoxLayout(auth_group)
         auth_layout.setSpacing(10)
 
-        auth_layout.addWidget(QLabel("Новый логин:"))
+        auth_layout.addWidget(QLabel(tr("sunshine.new_login_label")))
         self.user_edit = QLineEdit()
-        self.user_edit.setPlaceholderText("Введите логин...")
+        self.user_edit.setPlaceholderText(tr("sunshine.login_placeholder"))
         auth_layout.addWidget(self.user_edit)
 
         auth_layout.addSpacing(6)
-        auth_layout.addWidget(QLabel("Новый пароль:"))
+        auth_layout.addWidget(QLabel(tr("sunshine.new_password_label")))
         self.pass_edit = QLineEdit()
-        self.pass_edit.setPlaceholderText("Введите пароль...")
+        self.pass_edit.setPlaceholderText(tr("sunshine.password_placeholder"))
         self.pass_edit.setEchoMode(QLineEdit.EchoMode.Password)
         auth_layout.addWidget(self.pass_edit)
 
         auth_layout.addSpacing(10)
-        self.btn_creds = QPushButton("СОХРАНИТЬ ДАННЫЕ")
-        self.btn_creds.setToolTip("Применить новые логин/пароль к Sunshine и перезапустить его")
+        self.btn_creds = QPushButton(tr("sunshine.save_creds_btn"))
+        self.btn_creds.setToolTip(tr("sunshine.save_creds_tooltip"))
         self.btn_creds.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_creds.clicked.connect(self.apply_creds)
         auth_layout.addWidget(self.btn_creds)
@@ -339,7 +346,7 @@ class SunshineControlApp(QMainWindow):
         auth_tab_layout.addWidget(auth_group)
         auth_tab_layout.addStretch()
 
-        tabs.addTab(auth_tab, "🔐 Авторизация")
+        tabs.addTab(auth_tab, tr("sunshine.tab_auth"))
 
         # ===================== ВКЛАДКА: ЖУРНАЛ =====================
         log_tab = QWidget()
@@ -347,7 +354,7 @@ class SunshineControlApp(QMainWindow):
         log_tab_layout.setContentsMargins(12, 16, 12, 12)
         log_tab_layout.setSpacing(10)
 
-        log_group = QGroupBox("📝 Журнал событий")
+        log_group = QGroupBox(tr("sunshine.log_group"))
         log_group_layout = QVBoxLayout(log_group)
         self.log_view = QPlainTextEdit()
         self.log_view.setReadOnly(True)
@@ -356,10 +363,10 @@ class SunshineControlApp(QMainWindow):
 
         log_tab_layout.addWidget(log_group)
 
-        tabs.addTab(log_tab, "📝 Журнал")
+        tabs.addTab(log_tab, tr("sunshine.tab_log"))
 
         self.setCentralWidget(central)
-        self.append_log("Приложение запущено.")
+        self.append_log(tr("sunshine_log.app_started"))
 
     # ------------------------------------------------------------------
     # Логирование
@@ -387,12 +394,12 @@ class SunshineControlApp(QMainWindow):
             self.status_indicator.setStyleSheet(
                 "border-radius: 8px; background-color: #2ecc71; border: 1px solid #1e8449;"
             )
-            self.status_label.setText("Sunshine: Работает")
+            self.status_label.setText(tr("sunshine.running"))
         else:
             self.status_indicator.setStyleSheet(
                 "border-radius: 8px; background-color: #e74c3c; border: 1px solid #922b21;"
             )
-            self.status_label.setText("Sunshine: Остановлен")
+            self.status_label.setText(tr("sunshine.stopped"))
 
     # ------------------------------------------------------------------
     # Действия
@@ -403,17 +410,17 @@ class SunshineControlApp(QMainWindow):
         self.btn_creds.setEnabled(enabled)
 
     def open_web_panel(self):
-        self.append_log(f"Открытие веб-панели: {SUNSHINE_WEB_URL}")
+        self.append_log(tr("sunshine_log.opening_web", url=SUNSHINE_WEB_URL))
         webbrowser.open(SUNSHINE_WEB_URL)
 
     def sync_games(self):
         if not os.path.exists(self.games_data_path):
-            QMessageBox.critical(self, "Ошибка", "games_data.json не найден!")
-            self.append_log("Ошибка: games_data.json не найден.")
+            QMessageBox.critical(self, tr("common.error"), tr("sunshine.data_not_found"))
+            self.append_log(tr("sunshine_log.data_not_found_log"))
             return
 
         self.set_controls_enabled(False)
-        self.append_log("Запуск синхронизации...")
+        self.append_log(tr("sunshine_log.sync_start"))
 
         self.active_worker = SyncWorker(
             self.sunshine_dir, self.assets_dir, self.apps_json_path, self.games_data_path
@@ -426,27 +433,27 @@ class SunshineControlApp(QMainWindow):
         self.set_controls_enabled(True)
         self.append_log(message)
         if success:
-            QMessageBox.information(self, "Успех", message)
+            QMessageBox.information(self, tr("sunshine.success_title"), message)
         else:
-            QMessageBox.critical(self, "Ошибка", message)
+            QMessageBox.critical(self, tr("common.error"), message)
         self.refresh_status()
 
     def stop_sunshine(self):
-        self.append_log("Остановка Sunshine...")
+        self.append_log(tr("sunshine_log.stopping"))
         kill_sunshine()
-        self.append_log("Процесс Sunshine завершён.")
-        QMessageBox.information(self, "Статус", "Процесс Sunshine завершен.")
+        self.append_log(tr("sunshine_log.process_stopped"))
+        QMessageBox.information(self, tr("sunshine.status_title"), tr("sunshine.process_stopped"))
         self.refresh_status()
 
     def apply_creds(self):
         user = self.user_edit.text()
         pwd = self.pass_edit.text()
         if not user or not pwd:
-            self.append_log("Не заполнены логин или пароль.")
+            self.append_log(tr("sunshine_log.creds_empty"))
             return
 
         self.set_controls_enabled(False)
-        self.append_log("Применение новых учётных данных...")
+        self.append_log(tr("sunshine_log.applying_creds"))
 
         self.active_worker = CredsWorker(self.sunshine_dir, user, pwd)
         self.active_worker.log_signal.connect(self.append_log)
@@ -458,14 +465,15 @@ class SunshineControlApp(QMainWindow):
         self.append_log(message)
         if success:
             self.pass_edit.clear()
-            QMessageBox.information(self, "Готово", message)
+            QMessageBox.information(self, tr("sunshine.done_title"), message)
         else:
-            QMessageBox.critical(self, "Ошибка", message)
+            QMessageBox.critical(self, tr("common.error"), message)
         self.refresh_status()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
     app.setStyle("Fusion")
     apply_global_style(app)
     ex = SunshineControlApp()

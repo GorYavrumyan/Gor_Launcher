@@ -18,11 +18,36 @@ from PyQt6.QtGui import QKeySequence, QShortcut, QIcon, QPixmap, QDrag, QAction
 
 from style_loader import apply_global_style
 from fortune_wheel import FortuneWheelDialog
+from lang_loader import tr, available_languages, current_language, set_language
+
+NO_GROUP_KEY = "Без группы"  # внутренний ключ данных - НЕ переводится, чтобы не ломать games_data.json
+
+# Флаг для subprocess.*, чтобы служебные консольные команды (tasklist, taskkill)
+# не открывали и не мигали окном терминала на Windows. На других ОС просто 0.
+NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if platform.system() == 'Windows' else 0
+
+def _find_favicon_path():
+    """Ищет favicon.ico рядом со скриптом, на уровень выше и в рабочей папке.
+    Если нигде не найден - возвращает путь рядом со скриптом (по умолчанию)
+    и выводит предупреждение в консоль, чтобы было видно, что иконка не найдена."""
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = []
+    if getattr(sys, "frozen", False):
+        candidates.append(os.path.dirname(sys.executable))
+    candidates.append(script_dir)
+    candidates.append(os.getcwd())
+    candidates.append(os.path.dirname(script_dir))
+    for d in candidates:
+        p = os.path.join(d, "favicon.ico")
+        if os.path.exists(p):
+            return p
+    print(f"[GorLauncher] favicon.ico не найден. Проверенные папки: {candidates}")
+    return os.path.join(script_dir, "favicon.ico")
 
 @lru_cache(maxsize=512)
 def load_pixmap_cached(path):
     """Кэширует QPixmap по пути к файлу, чтобы не читать иконку с диска
-    заново при каждом refresh_list (поиск, избранное, история и т.д.)."""
+    заново при каждом refresh_list."""
     return QPixmap(path) if path else QPixmap()
 
 # --- УНИВЕРСАЛЬНЫЙ ЗАПУСК ФАЙЛОВ ---
@@ -47,7 +72,7 @@ def run_editor_process(script_name, args=None):
         else:
             return subprocess.Popen([sys.executable, py_name] + (args if args else []))
 
-# --- ПОТОК ДЛЯ МОНИТОРИНГЕ ПРОЦЕССА ИГРЫ ---
+# --- ПОТОК ДЛЯ МОНИТОРИНГА ПРОЦЕССА ИГРЫ ---
 class ProcessMonitor(QThread):
     finished_playing = pyqtSignal(int, dict) 
 
@@ -58,16 +83,11 @@ class ProcessMonitor(QThread):
         self.game_data = game_data
 
     def run(self):
-        # Интеллектуальный мониторинг: если процесс сразу завершается (лаунчер-обертка),
-        # ожидаем появление дочернего/нового процесса игры в системе, либо держим сессию активной,
-        # чтобы лаунчер не думал, что игра закрылась.
         try:
             self.process.wait()
         except Exception:
             pass
         
-        # Если это был быстрый файл-лаунчер (файл 1 закрылся, передав управление файлу 2),
-        # даем системе время на запуск реального игрового процесса и мониторим его наличие.
         time.sleep(2)
         target_name = os.path.basename(self.game_data.get('path', '')).lower()
         
@@ -76,7 +96,7 @@ class ProcessMonitor(QThread):
                 running = False
                 try:
                     if platform.system() == 'Windows':
-                        output = subprocess.check_output(['tasklist', '/FO', 'CSV'], universal_newlines=True, encoding='cp1251', errors='ignore')
+                        output = subprocess.check_output(['tasklist', '/FO', 'CSV'], universal_newlines=True, encoding='cp1251', errors='ignore', creationflags=NO_WINDOW_FLAGS)
                         if target_name in output.lower():
                             running = True
                     else:
@@ -93,7 +113,7 @@ class ProcessMonitor(QThread):
         duration = int(time.time() - self.start_time)
         self.finished_playing.emit(duration, self.game_data)
 
-# --- ПОТОК ДЛЯ МОНИТОРИНГЕ ЗАКРЫТИЯ РЕДАКТОРОВ ---
+# --- ПОТОК ДЛЯ МОНИТОРИНГА ЗАКРЫТИЯ РЕДАКТОРОВ ---
 class EditorMonitor(QThread):
     editor_closed = pyqtSignal()
 
@@ -137,12 +157,12 @@ class HistoryCard(QFrame):
         name.setObjectName("HistoryCardName")
         name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        date_lbl = QLabel(f"📅 {self.entry['date']}")
+        date_lbl = QLabel(tr("history_card.date_prefix", date=self.entry['date']))
         date_lbl.setObjectName("HistoryCardDate")
         
         dur = self.entry.get('session_time', 0)
         h, m = dur // 3600, (dur % 3600) // 60
-        time_lbl = QLabel(f"⌛ Сессия: {h}ч {m}м")
+        time_lbl = QLabel(tr("history_card.session_time", h=h, m=m))
         time_lbl.setObjectName("HistoryCardTime")
 
         layout.addWidget(img, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -153,7 +173,7 @@ class HistoryCard(QFrame):
 
     def show_context_menu(self, pos):
         menu = QMenu(self)
-        del_act = QAction("🗑️ Удалить запись", self)
+        del_act = QAction(tr("history_card.delete_entry"), self)
         del_act.triggered.connect(lambda: self.parent_launcher.delete_history_entry(self.index))
         menu.addAction(del_act)
         menu.exec(self.mapToGlobal(pos))
@@ -183,6 +203,7 @@ class GameCard(QFrame):
         
         self.running_seconds = 0
         self.is_paused = False
+        self.is_running = False
         self.active_process = None
         self.monitor = None
 
@@ -198,7 +219,8 @@ class GameCard(QFrame):
             self.monitor = session['monitor']
             self.running_seconds = int(time.time() - session['start_time'])
             
-            self.run_btn.setText("ОТКЛЮЧИТЬ")
+            self.is_running = True
+            self.run_btn.setText(tr("game_card.stop"))
             self.run_btn.setStyleSheet("background-color: #d9534f; color: white;")
             self.pause_timer_btn.setVisible(True)
             self.game_timer.start(1000)
@@ -234,11 +256,10 @@ class GameCard(QFrame):
         
         total_sec = self.game_data.get('playtime_seconds', 0)
         h, m = total_sec // 3600, (total_sec % 3600) // 60
-        self.time_lbl = QLabel(f"⏱ {h}ч {m}м")
+        self.time_lbl = QLabel(tr("game_card.time_static", h=h, m=m))
         self.time_lbl.setObjectName("GameCardTime")
         self.time_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Полностью исправленная кнопка паузы таймера с поддержкой надежного отображения эмодзи и аккуратной высотой
         self.pause_timer_btn = QPushButton("⏸️")
         self.pause_timer_btn.setObjectName("PauseTimerBtn")
         self.pause_timer_btn.setFixedSize(36, 26)
@@ -268,7 +289,7 @@ class GameCard(QFrame):
         time_layout.addWidget(self.pause_timer_btn)
 
         btn_layout = QHBoxLayout()
-        self.run_btn = QPushButton("ЗАПУСТИТЬ")
+        self.run_btn = QPushButton(tr("game_card.run"))
         self.run_btn.setObjectName("RunGameBtn")
         self.run_btn.setFixedHeight(45)
         self.run_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -297,21 +318,27 @@ class GameCard(QFrame):
             print(f"Не удалось открыть папку игры: {e}")
 
     def show_context_menu(self, pos):
-        if self.run_btn.text() == "ОТКЛЮЧИТЬ":
-            return
         menu = QMenu(self)
-        fav_text = "❌ Убрать из избранного" if self.game_data.get('favorite') else "⭐️ В избранное"
-        fav_act = QAction(fav_text, self)
-        fav_act.triggered.connect(self.toggle_favorite)
-        e_act = QAction("📝 Изменить", self)
-        e_act.triggered.connect(lambda: self.parent_launcher.edit_game(self.game_data, self.group_name))
-        d_act = QAction("🗑️ Удалить", self)
-        d_act.triggered.connect(lambda: self.parent_launcher.delete_game_confirm(self.game_data, self.group_name))
-        menu.addAction(fav_act)
-        menu.addSeparator()
-        menu.addAction(e_act)
-        menu.addAction(d_act)
+        if not self.is_running:
+            fav_text = tr("game_card.remove_favorite") if self.game_data.get('favorite') else tr("game_card.add_favorite")
+            fav_act = QAction(fav_text, self)
+            fav_act.triggered.connect(self.toggle_favorite)
+            menu.addAction(fav_act)
+            menu.addSeparator()
+            e_act = QAction(tr("game_card.edit"), self)
+            e_act.triggered.connect(lambda: self.parent_launcher.edit_game(self.game_data, self.group_name))
+            menu.addAction(e_act)
+            d_act = QAction(tr("game_card.delete"), self)
+            d_act.triggered.connect(lambda: self.parent_launcher.delete_game_confirm(self.game_data, self.group_name))
+            menu.addAction(d_act)
+            menu.addSeparator()
+        copy_act = QAction(tr("game_card.copy_path"), self)
+        copy_act.triggered.connect(self.copy_path_to_clipboard)
+        menu.addAction(copy_act)
         menu.exec(self.mapToGlobal(pos))
+
+    def copy_path_to_clipboard(self):
+        QApplication.clipboard().setText(self.game_data.get('path', ''))
 
     def toggle_favorite(self):
         self.game_data['favorite'] = not self.game_data.get('favorite', False)
@@ -337,30 +364,31 @@ class GameCard(QFrame):
             super().keyPressEvent(e)
 
     def handle_main_button(self):
-        if self.run_btn.text() == "ОТКЛЮЧИТЬ":
+        if self.is_running:
             if self.active_process:
                 try:
                     if platform.system() == 'Windows':
                         subprocess.run(
                             ["taskkill", "/F", "/T", "/PID", str(self.active_process.pid)],
-                            capture_output=True
+                            capture_output=True,
+                            creationflags=NO_WINDOW_FLAGS
                         )
                     else:
                         self.active_process.terminate()
                 except Exception as e:
                     print(f"Ошибка принудительного закрытия процесса: {e}")
             
-            # Возвращаем карточку в исходное состояние
             self.game_timer.stop()
             self.is_paused = False
+            self.is_running = False
             self.pause_timer_btn.setText("⏸️")
             self.pause_timer_btn.setVisible(False)
-            self.run_btn.setText("ЗАПУСТИТЬ")
+            self.run_btn.setText(tr("game_card.run"))
             self.run_btn.setStyleSheet("")
             
             total_sec = self.game_data.get('playtime_seconds', 0)
             h, m = total_sec // 3600, (total_sec % 3600) // 60
-            self.time_lbl.setText(f"⏱ {h}ч {m}м")
+            self.time_lbl.setText(tr("game_card.time_static", h=h, m=m))
             
             gid = self.game_data.get('id') or self.game_data['name']
             if gid in self.parent_launcher.active_sessions:
@@ -380,7 +408,8 @@ class GameCard(QFrame):
                     cmd_list.extend(shlex.split(args))
                 self.active_process = subprocess.Popen(cmd_list, cwd=working_dir)
                 
-                self.run_btn.setText("ОТКЛЮЧИТЬ")
+                self.is_running = True
+                self.run_btn.setText(tr("game_card.stop"))
                 self.run_btn.setStyleSheet("background-color: #d9534f; color: white;")
                 self.running_seconds = 0
                 self.is_paused = False
@@ -402,7 +431,7 @@ class GameCard(QFrame):
             else:
                 universal_launch(path)
         except Exception as e: 
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить:\n{e}")
+            QMessageBox.critical(self, tr("common.error"), tr("game_card.launch_error", error=e))
 
     def update_live_timer(self):
         if not self.is_paused:
@@ -422,9 +451,10 @@ class GameCard(QFrame):
     def on_game_finished(self, duration, game_data):
         self.game_timer.stop()
         self.is_paused = False
+        self.is_running = False
         self.pause_timer_btn.setText("⏸️")
         self.pause_timer_btn.setVisible(False)
-        self.run_btn.setText("ЗАПУСТИТЬ")
+        self.run_btn.setText(tr("game_card.run"))
         self.run_btn.setStyleSheet("")
         
         gid = self.game_data.get('id') or self.game_data['name']
@@ -432,6 +462,12 @@ class GameCard(QFrame):
             del self.parent_launcher.active_sessions[gid]
 
         self.parent_launcher.finalize_history_session(duration, game_data)
+
+    def mouseDoubleClickEvent(self, e):
+        if e.button() == Qt.MouseButton.LeftButton:
+            self.handle_main_button()
+        else:
+            super().mouseDoubleClickEvent(e)
 
     def mouseMoveEvent(self, e):
         if e.buttons() == Qt.MouseButton.LeftButton:
@@ -491,8 +527,8 @@ class GroupWidget(QFrame):
 
     def show_group_menu(self, pos):
         menu = QMenu(self)
-        r_act = QAction("✏️ Переименовать", self)
-        d_act = QAction("❌ Удалить группу", self)
+        r_act = QAction(tr("group.rename"), self)
+        d_act = QAction(tr("group.delete_group"), self)
         r_act.triggered.connect(lambda: self.parent_launcher.edit_group(self.group_name))
         d_act.triggered.connect(lambda: self.parent_launcher.delete_group_confirm(self.group_name))
         menu.addAction(r_act); menu.addAction(d_act)
@@ -501,11 +537,17 @@ class GroupWidget(QFrame):
     def dragEnterEvent(self, e): e.accept()
     def dropEvent(self, e): self.parent_launcher.move_game_to_group(e.mimeData().text(), self.group_name)
 
+
+with open("version.json", "r", encoding="utf-8") as f:
+    version = json.load(f)["version"]
+
+
 # --- ГЛАВНОЕ ОКНО ---
 class GORLauncher(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("GOR Launcher PRO v3.0")
+        self.setWindowTitle(tr("launcher.window_title") + "   " + version)
+        self.setWindowIcon(QIcon(_find_favicon_path()))
         self.setMinimumSize(1300, 950)
         self.data_file = "games_data.json"
         self.active_sessions = {}
@@ -548,39 +590,51 @@ class GORLauncher(QMainWindow):
         self.setCentralWidget(central)
         self.main_lay = QVBoxLayout(central)
         header = QHBoxLayout()
-        title = QLabel("GOR UNIVERSAL")
-        title.setObjectName("AppTitle")
         self.stats_lbl = QLabel()
         self.stats_lbl.setObjectName("StatsLabel")
         
-        btn_sunshine = QPushButton("⚙️ SUNSHINE")
-        btn_sunshine.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_sunshine.clicked.connect(self.run_sunshine)
-        
-        btn_exporter = QPushButton("📦 EXPORT")
-        btn_exporter.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_exporter.clicked.connect(self.open_exporter)
+        self.burger_btn = QPushButton("☰")
+        self.burger_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.burger_btn.setObjectName("BurgerMenuBtn")
+        self.burger_btn.setStyleSheet("QPushButton::menu-indicator { image: none; width: 0px; }")
 
-        btn_wheel = QPushButton("🎡 КОЛЕСО ФОРТУНЫ")
-        btn_wheel.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_wheel.clicked.connect(self.open_fortune_wheel)
+        burger_menu = QMenu(self)
+
+        act_wheel = QAction(tr("launcher.menu_wheel"), self)
+        act_wheel.triggered.connect(self.open_fortune_wheel)
+        burger_menu.addAction(act_wheel)
+
+        act_sunshine = QAction(tr("launcher.menu_sunshine"), self)
+        act_sunshine.triggered.connect(self.run_sunshine)
+        burger_menu.addAction(act_sunshine)
+
+        act_exporter = QAction(tr("launcher.menu_exporter"), self)
+        act_exporter.triggered.connect(self.open_exporter)
+        burger_menu.addAction(act_exporter)
+
+        burger_menu.addSeparator()
+        lang_menu = burger_menu.addMenu(tr("launcher.menu_language"))
+        active_code = current_language()
+        for lang in available_languages():
+            act = QAction(("✅ " if lang["code"] == active_code else "") + lang["name"], self)
+            act.triggered.connect(lambda checked=False, c=lang["code"], n=lang["name"]: self.change_language(c, n))
+            lang_menu.addAction(act)
+
+        self.burger_btn.setMenu(burger_menu)
         
         self.search_bar = QLineEdit()
         self.search_bar.setObjectName("SearchBar")
-        self.search_bar.setPlaceholderText("🔍 Поиск по библиотеке...")
+        self.search_bar.setPlaceholderText(tr("launcher.search_placeholder"))
         self.search_bar.setFixedWidth(300)
         self.search_timer = QTimer(self)
         self.search_timer.setSingleShot(True)
         self.search_timer.timeout.connect(self.refresh_list)
         self.search_bar.textChanged.connect(lambda: self.search_timer.start(250))
         
-        header.addWidget(title)
-        header.addStretch()
-        header.addWidget(btn_wheel)
-        header.addWidget(btn_sunshine)
-        header.addWidget(btn_exporter)
         header.addWidget(self.stats_lbl)
         header.addWidget(self.search_bar)
+        header.addStretch()
+        header.addWidget(self.burger_btn)
         self.main_lay.addLayout(header)
         
         self.tabs = QTabWidget()
@@ -589,16 +643,30 @@ class GORLauncher(QMainWindow):
         self.lib_tab = QWidget()
         self.lib_lay = QVBoxLayout(self.lib_tab)
         tool_lay = QHBoxLayout()
-        btn_add = QPushButton("➕ ДОБАВИТЬ ИГРУ"); btn_add.clicked.connect(self.add_game_dialog)
-        btn_grp = QPushButton("📁 НОВАЯ ГРУППА"); btn_grp.clicked.connect(self.add_group)
+        btn_add = QPushButton(tr("launcher.add_game_btn")); btn_add.clicked.connect(self.add_game_dialog)
+        btn_grp = QPushButton(tr("launcher.add_group_btn")); btn_grp.clicked.connect(self.add_group)
         tool_lay.addWidget(btn_add); tool_lay.addWidget(btn_grp); tool_lay.addStretch()
+
+        sort_lbl = QLabel(tr("launcher.sort_label"))
+        self.sort_combo = QComboBox()
+        self.sort_combo.setObjectName("SortCombo")
+        self.sort_combo.addItem(tr("launcher.sort_default"), "default")
+        self.sort_combo.addItem(tr("launcher.sort_name_asc"), "name_asc")
+        self.sort_combo.addItem(tr("launcher.sort_name_desc"), "name_desc")
+        self.sort_combo.addItem(tr("launcher.sort_playtime_desc"), "playtime_desc")
+        self.sort_combo.addItem(tr("launcher.sort_playtime_asc"), "playtime_asc")
+        self.sort_combo.addItem(tr("launcher.sort_newest"), "newest")
+        self.sort_combo.currentIndexChanged.connect(self.refresh_list)
+        tool_lay.addWidget(sort_lbl)
+        tool_lay.addWidget(self.sort_combo)
+
         self.lib_lay.addLayout(tool_lay)
         
         self.scroll_lib = QScrollArea(); self.scroll_lib.setWidgetResizable(True)
         self.lib_cont = QWidget(); self.lib_scroll_lay = QVBoxLayout(self.lib_cont)
         self.lib_scroll_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.scroll_lib.setWidget(self.lib_cont); self.lib_lay.addWidget(self.scroll_lib)
-        self.tabs.addTab(self.lib_tab, "📚 БИБЛИОТЕКА")
+        self.tabs.addTab(self.lib_tab, tr("launcher.tab_library"))
         
         self.fav_tab = QWidget()
         self.fav_lay = QVBoxLayout(self.fav_tab)
@@ -606,244 +674,321 @@ class GORLauncher(QMainWindow):
         self.fav_cont = QWidget(); self.fav_grid = QGridLayout(self.fav_cont); self.fav_grid.setSpacing(25)
         self.fav_grid.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.scroll_fav.setWidget(self.fav_cont); self.fav_lay.addWidget(self.scroll_fav)
-        self.tabs.addTab(self.fav_tab, "⭐️ ИЗБРАННОЕ")
+        self.tabs.addTab(self.fav_tab, tr("launcher.tab_favorites"))
         
         self.hist_tab = QWidget()
         self.hist_lay = QVBoxLayout(self.hist_tab)
         hist_tool = QHBoxLayout()
-        btn_clear = QPushButton("🗑️ ОЧИСТИТЬ ИСТОРИЮ"); btn_clear.clicked.connect(self.clear_history_confirm)
+        btn_clear = QPushButton(tr("launcher.clear_history_btn")); btn_clear.clicked.connect(self.clear_history_confirm)
         hist_tool.addStretch(); hist_tool.addWidget(btn_clear)
         self.hist_lay.addLayout(hist_tool)
+        
         self.scroll_hist = QScrollArea(); self.scroll_hist.setWidgetResizable(True)
-        self.hist_cont = QWidget(); self.hist_grid = QGridLayout(self.hist_cont); self.hist_grid.setSpacing(25)
+        self.hist_cont = QWidget(); self.hist_grid = QGridLayout(self.hist_cont); self.hist_grid.setSpacing(20)
         self.hist_grid.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.scroll_hist.setWidget(self.hist_cont); self.hist_lay.addWidget(self.scroll_hist)
-        self.tabs.addTab(self.hist_tab, "📜 ИСТОРИЯ")
-        self.update_stats(); self.refresh_list()
-        self._setup_shortcuts()
+        self.tabs.addTab(self.hist_tab, tr("launcher.tab_history"))
+        
+        self.refresh_list()
 
-    def _setup_shortcuts(self):
-        QShortcut(QKeySequence("Ctrl+F"), self, activated=self.focus_search)
-        QShortcut(QKeySequence("Ctrl+N"), self, activated=self.add_game_dialog)
-        QShortcut(QKeySequence("Ctrl+G"), self, activated=self.add_group)
-        QShortcut(QKeySequence("Ctrl+E"), self, activated=self.open_exporter)
-        QShortcut(QKeySequence("Ctrl+Shift+S"), self, activated=self.run_sunshine)
-        QShortcut(QKeySequence("Ctrl+Shift+W"), self, activated=self.open_fortune_wheel)
-        QShortcut(QKeySequence("F5"), self, activated=self.refresh_list)
-        QShortcut(QKeySequence("Ctrl+1"), self, activated=lambda: self.tabs.setCurrentIndex(0))
-        QShortcut(QKeySequence("Ctrl+2"), self, activated=lambda: self.tabs.setCurrentIndex(1))
-        QShortcut(QKeySequence("Ctrl+3"), self, activated=lambda: self.tabs.setCurrentIndex(2))
-        QShortcut(QKeySequence("Ctrl+Tab"), self, activated=self.next_tab)
-        QShortcut(QKeySequence("Ctrl+Shift+Tab"), self, activated=self.prev_tab)
-        QShortcut(QKeySequence("Ctrl+Home"), self, activated=self.focus_first_card)
-        QShortcut(QKeySequence("Escape"), self, activated=self.handle_escape)
-
-    def focus_search(self):
-        self.search_bar.setFocus()
-        self.search_bar.selectAll()
-
-    def next_tab(self):
-        self.tabs.setCurrentIndex((self.tabs.currentIndex() + 1) % self.tabs.count())
-
-    def prev_tab(self):
-        self.tabs.setCurrentIndex((self.tabs.currentIndex() - 1) % self.tabs.count())
-
-    def handle_escape(self):
-        if self.search_bar.hasFocus() and self.search_bar.text():
-            self.search_bar.clear()
-        else:
-            self.search_bar.clearFocus()
-            self.setFocus()
-
-    def focus_first_card(self):
-        current = self.tabs.currentWidget()
-        if not current:
-            return
-        cards = current.findChildren(GameCard) + current.findChildren(HistoryCard)
-        if cards:
-            cards[0].setFocus()
-
-    def run_sunshine(self):
-        try: run_editor_process("sunshine_control")
-        except Exception as e: QMessageBox.critical(self, "Ошибка", f"Не удалось запустить Sunshine: {e}")
-
-    def open_exporter(self):
-        try: run_editor_process("exporter_editor")
-        except Exception as e: QMessageBox.critical(self, "Ошибка", f"Не удалось запустить Exporter: {e}")
-
-    def open_fortune_wheel(self):
-        dlg = FortuneWheelDialog(
-            self,
-            json_path=self.data_file,
-            launch_callback=self.launch_game_from_wheel,
+    def change_language(self, code, name):
+        set_language(code)
+        reply = QMessageBox.question(
+            self, tr("launcher.language_restart_title"),
+            tr("launcher.language_restart_text", name=name)
         )
-        dlg.exec()
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                from bridge_loader import restart_launcher
+                restart_launcher(confirm=False)
+            except Exception:
+                base_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+                subprocess.Popen([sys.executable] + sys.argv, cwd=base_dir)
+                QApplication.closeAllWindows()
+                sys.exit(0)
 
-    def launch_game_from_wheel(self, game_data):
-        try:
-            path = game_data['path']
-            if path.lower().endswith(('.exe', '.bat')):
-                full_path = os.path.abspath(path)
-                working_dir = os.path.dirname(full_path)
-                args = game_data.get('args', '')
-                start_t = time.time()
-                
-                cmd_list = [full_path]
-                if args:
-                    cmd_list.extend(shlex.split(args))
-                proc = subprocess.Popen(cmd_list, cwd=working_dir)
-                
-                monitor = ProcessMonitor(proc, start_t, game_data)
-                monitor.finished_playing.connect(self.finalize_history_session)
-                monitor.start()
-                self._wheel_monitors.append(monitor)
-            else:
-                universal_launch(path)
-        except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить:\n{e}")
+    def sort_games_list(self, games):
+        """Возвращает отсортированную КОПИЮ списка игр согласно self.sort_combo.
+        Сами словари игр не копируются - это те же объекты, что и в self.games_info,
+        поэтому редактирование игры продолжает работать как прежде."""
+        mode = self.sort_combo.currentData() if hasattr(self, "sort_combo") else "default"
+        games = list(games)
+        if mode == "name_asc":
+            games.sort(key=lambda g: g.get('name', '').lower())
+        elif mode == "name_desc":
+            games.sort(key=lambda g: g.get('name', '').lower(), reverse=True)
+        elif mode == "playtime_desc":
+            games.sort(key=lambda g: g.get('playtime_seconds', 0), reverse=True)
+        elif mode == "playtime_asc":
+            games.sort(key=lambda g: g.get('playtime_seconds', 0))
+        elif mode == "newest":
+            games.reverse()
+        return games
 
-    def finalize_history_session(self, seconds, game_data):
-        all_games = self.games_info["standalone"][:]
-        for g_list in self.games_info["groups"].values(): all_games.extend(g_list)
-        gid = game_data.get('id')
-        for g in all_games:
-            if (gid and g.get('id') == gid) or (not gid and g['name'] == game_data['name']):
-                g['playtime_seconds'] = g.get('playtime_seconds', 0) + seconds
-                break
-        now = datetime.now().strftime("%d.%m.%Y %H:%M")
-        entry = {"name": game_data['name'], "icon": game_data.get('icon', ''), "date": now, "session_time": seconds}
-        if "history" not in self.games_info: self.games_info["history"] = []
-        self.games_info["history"].insert(0, entry) 
-        if len(self.games_info["history"]) > 100: self.games_info["history"].pop()
-        self.save_data(); self.update_stats(); self.refresh_list()
-
-    def clear_history_confirm(self):
-        ret = QMessageBox.question(self, 'Очистка', "Удалить всю историю?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if ret == QMessageBox.StandardButton.Yes: self.games_info["history"] = []; self.save_data(); self.refresh_list()
-
-    def delete_history_entry(self, index):
-        if 0 <= index < len(self.games_info["history"]): self.games_info["history"].pop(index); self.save_data(); self.refresh_list()
+    def sort_groups(self, groups_dict):
+        """Возвращает список (имя_группы, игры) из словаря групп,
+        отсортированный тем же режимом, что выбран в self.sort_combo.
+        Для playtime_* берётся суммарное наигранное время всех игр в группе."""
+        mode = self.sort_combo.currentData() if hasattr(self, "sort_combo") else "default"
+        items = list(groups_dict.items())
+        if mode == "name_asc":
+            items.sort(key=lambda kv: kv[0].lower())
+        elif mode == "name_desc":
+            items.sort(key=lambda kv: kv[0].lower(), reverse=True)
+        elif mode == "playtime_desc":
+            items.sort(key=lambda kv: sum(g.get('playtime_seconds', 0) for g in kv[1]), reverse=True)
+        elif mode == "playtime_asc":
+            items.sort(key=lambda kv: sum(g.get('playtime_seconds', 0) for g in kv[1]))
+        elif mode == "newest":
+            items.reverse()
+        return items
 
     def update_stats(self):
-        total_sec = 0; count = 0
-        all_games = self.games_info["standalone"][:]
-        for g_list in self.games_info["groups"].values(): all_games.extend(g_list)
-        for g in all_games: total_sec += g.get('playtime_seconds', 0); count += 1
-        h = total_sec // 3600; m = (total_sec % 3600) // 60
-        self.stats_lbl.setText(f"📊 Игр: {count} | ⌛ Всего: {h}ч {m}м")
+        total_games = len(self.games_info.get("standalone", []))
+        for grp in self.games_info.get("groups", {}).values():
+            total_games += len(grp)
+        total_time = 0
+        all_lists = [self.games_info.get("standalone", [])] + list(self.games_info.get("groups", {}).values())
+        for lst in all_lists:
+            for g in lst:
+                total_time += g.get('playtime_seconds', 0)
+        h = total_time // 3600
+        self.stats_lbl.setText(tr("launcher.stats", count=total_games, hours=h))
 
     def refresh_list(self):
-        filter_text = self.search_bar.text().lower()
-        while self.lib_scroll_lay.count():
-            child = self.lib_scroll_lay.takeAt(0)
-            if child.widget(): child.widget().deleteLater()
-        all_games = self.games_info["standalone"][:]
-        for g_list in self.games_info["groups"].values(): all_games.extend(g_list)
-        while self.fav_grid.count():
-            w = self.fav_grid.takeAt(0).widget()
-            if w: w.deleteLater()
-        fav_list = [g for g in all_games if g.get('favorite')]
-        c, r = 0, 0
-        for g in fav_list:
-            self.fav_grid.addWidget(GameCard(g, self), r, c)
-            c += 1
-            if c > 4: c, r = 0, r + 1
-        while self.hist_grid.count():
-            w = self.hist_grid.takeAt(0).widget()
-            if w: w.deleteLater()
-        for i, entry in enumerate(self.games_info["history"]):
-            self.hist_grid.addWidget(HistoryCard(entry, i, self), i // 5, i % 5)
-        for gn, gg in self.games_info["groups"].items():
-            grp_w = GroupWidget(gn, gg, self)
-            self.lib_scroll_lay.addWidget(grp_w)
-            grp_w.refresh_cards(filter_text)
-        st_w = GroupWidget("БЕЗ ГРУППЫ", self.games_info["standalone"], self)
-        self.lib_scroll_lay.addWidget(st_w)
-        st_w.refresh_cards(filter_text)
-
-    def on_game_editor_closed(self, *args, **kwargs):
-        self.load_data()
-        self.refresh_list()
+        filter_text = self.search_bar.text().strip().lower()
         self.update_stats()
+        
+        # --- БИБЛИОТЕКА ---
+        while self.lib_scroll_lay.count():
+            item = self.lib_scroll_lay.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
-    def on_group_editor_closed(self, *args, **kwargs):
-        self.load_data()
-        self.refresh_list()
+        for name, games in self.sort_groups(self.games_info.get("groups", {})):
+            gw = GroupWidget(name, self.sort_games_list(games), self)
+            gw.refresh_cards(filter_text)
+            self.lib_scroll_lay.addWidget(gw)
+
+        st_games = self.games_info.get("standalone", [])
+        if st_games:
+            gw_st = GroupWidget(tr("launcher.standalone_title"), self.sort_games_list(st_games), self)
+            gw_st.refresh_cards(filter_text)
+            self.lib_scroll_lay.addWidget(gw_st)
+
+        # --- ИЗБРАННОЕ ---
+        while self.fav_grid.count():
+            item = self.fav_grid.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        fav_games = []
+        all_lists = [self.games_info.get("standalone", [])] + list(self.games_info.get("groups", {}).values())
+        for lst in all_lists:
+            for g in lst:
+                if g.get('favorite', False):
+                    fav_games.append(g)
+
+        c, r = 0, 0
+        for g in self.sort_games_list(fav_games):
+            if filter_text in g['name'].lower():
+                self.fav_grid.addWidget(GameCard(g, self, "Избранное"), r, c)
+                c += 1
+                if c > 3:
+                    c, r = 0, r + 1
+
+        # --- ИСТОРИЯ ---
+        while self.hist_grid.count():
+            item = self.hist_grid.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        c, r = 0, 0
+        history_list = self.games_info.get("history", [])
+        for idx, entry in enumerate(history_list):
+            if filter_text in entry['name'].lower():
+                self.hist_grid.addWidget(HistoryCard(entry, idx, self), r, c)
+                c += 1
+                if c > 4:
+                    c, r = 0, r + 1
 
     def add_game_dialog(self):
-        try:
-            proc = run_editor_process("game_editor")
-            self.game_monitor = EditorMonitor(proc)
-            self.game_monitor.editor_closed.connect(self.on_game_editor_closed)
-            self.game_monitor.start()
-        except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить редактор:\n{e}")
+        proc = run_editor_process("game_editor")
+        monitor = EditorMonitor(proc)
+        monitor.editor_closed.connect(self.on_editor_closed)
+        self._wheel_monitors.append(monitor)
+        monitor.start()
 
-    def edit_game(self, old, grp):
-        try:
-            args = [old['name'], grp or "Без группы", old.get('id') or ""]
-            proc = run_editor_process("game_editor", args)
-            self.game_monitor = EditorMonitor(proc)
-            self.game_monitor.editor_closed.connect(self.on_game_editor_closed)
-            self.game_monitor.start()
-        except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить редактор:\n{e}")
+    def edit_game(self, game_data, group_name):
+        g_name = group_name if group_name else NO_GROUP_KEY
+        gid = game_data.get("id", "")
+        proc = run_editor_process("game_editor", [game_data['name'], g_name, gid])
+        monitor = EditorMonitor(proc)
+        monitor.editor_closed.connect(self.on_editor_closed)
+        self._wheel_monitors.append(monitor)
+        monitor.start()
 
-    def delete_game_confirm(self, game, group):
-        ret = QMessageBox.question(self, 'Удаление', f"Удалить '{game['name']}'?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if ret == QMessageBox.StandardButton.Yes: self.delete_game(game, group)
-
-    def delete_game(self, game, group, refresh=True):
-        lst = self.games_info["groups"].get(group, self.games_info["standalone"]) if group and group != "Без группы" else self.games_info["standalone"]
-        gid = game.get("id")
-        for i, g in enumerate(lst):
-            if (gid and g.get("id") == gid) or (not gid and g["name"] == game["name"]):
-                lst.pop(i); break
-        if refresh: self.save_data(); self.refresh_list(); self.update_stats()
+    def on_editor_closed(self):
+        self.load_data()
+        self.refresh_list()
 
     def add_group(self):
+        proc = run_editor_process("group_editor")
+        monitor = EditorMonitor(proc)
+        monitor.editor_closed.connect(self.on_editor_closed)
+        self._wheel_monitors.append(monitor)
+        monitor.start()
+
+    def edit_group(self, group_name):
+        proc = run_editor_process("group_editor", [group_name])
+        monitor = EditorMonitor(proc)
+        monitor.editor_closed.connect(self.on_editor_closed)
+        self._wheel_monitors.append(monitor)
+        monitor.start()
+
+    def delete_group_confirm(self, group_name):
+        reply = QMessageBox.question(
+            self, tr("group.delete_confirm_title"),
+            tr("group.delete_confirm_text", name=group_name),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            if group_name in self.games_info.get("groups", {}):
+                games = self.games_info["groups"].pop(group_name)
+                self.games_info["standalone"].extend(games)
+                self.save_data()
+                self.refresh_list()
+
+    def delete_game_confirm(self, game_data, group_name):
+        reply = QMessageBox.question(
+            self, tr("game_delete.confirm_title"),
+            tr("game_delete.confirm_text", name=game_data['name']),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            gid = game_data.get('id')
+            if group_name and group_name in self.games_info.get("groups", {}):
+                lst = self.games_info["groups"][group_name]
+            else:
+                lst = self.games_info.get("standalone", [])
+            
+            for idx, g in enumerate(lst):
+                if (gid and g.get('id') == gid) or (g['name'] == game_data['name']):
+                    lst.pop(idx)
+                    break
+
+            self.save_data()
+            self.refresh_list()
+
+    def move_game_to_group(self, game_identifier, target_group):
+        found_game = None
+        all_lists = [self.games_info["standalone"]] + list(self.games_info["groups"].values())
+        
+        for lst in all_lists:
+            for idx, g in enumerate(lst):
+                if g.get('id') == game_identifier or g['name'] == game_identifier:
+                    found_game = lst.pop(idx)
+                    break
+            if found_game:
+                break
+
+        if found_game:
+            if target_group == tr("launcher.standalone_title") or target_group == NO_GROUP_KEY:
+                self.games_info["standalone"].append(found_game)
+            else:
+                if target_group not in self.games_info["groups"]:
+                    self.games_info["groups"][target_group] = []
+                self.games_info["groups"][target_group].append(found_game)
+            
+            self.save_data()
+            self.refresh_list()
+
+    def open_fortune_wheel(self):
+        dialog = FortuneWheelDialog(self, json_path=self.data_file, launch_callback=self.launch_game_from_wheel)
+        dialog.exec()
+
+    def launch_game_from_wheel(self, game_data):
+        target_card = None
+        for i in range(self.lib_scroll_lay.count()):
+            w = self.lib_scroll_lay.itemAt(i).widget()
+            if isinstance(w, GroupWidget):
+                for j in range(w.grid.count()):
+                    card = w.grid.itemAt(j).widget()
+                    if isinstance(card, GameCard):
+                        if (card.game_data.get('id') and card.game_data.get('id') == game_data.get('id')) or \
+                           (card.game_data['name'] == game_data['name']):
+                            target_card = card
+                            break
+            if target_card:
+                break
+        
+        if target_card:
+            target_card.handle_main_button()
+        else:
+            try:
+                path = game_data['path']
+                universal_launch(path)
+            except Exception as e:
+                QMessageBox.critical(self, tr("common.error"), tr("game_card.launch_error", error=e))
+
+    def run_sunshine(self):
         try:
-            proc = run_editor_process("group_editor")
-            self.group_monitor = EditorMonitor(proc)
-            self.group_monitor.editor_closed.connect(self.on_group_editor_closed)
-            self.group_monitor.start()
+            run_editor_process("sunshine_control")
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить редактор групп:\n{e}")
+            QMessageBox.critical(self, tr("sunshine_error.title"), tr("sunshine_error.text", error=e))
 
-    def edit_group(self, old_name):
+    def open_exporter(self):
         try:
-            args = [old_name]
-            proc = run_editor_process("group_editor", args)
-            self.group_monitor = EditorMonitor(proc)
-            self.group_monitor.editor_closed.connect(self.on_group_editor_closed)
-            self.group_monitor.start()
+            run_editor_process("exporter_editor")
         except Exception as e:
-            QMessageBox.critical(self, "Ошибка", f"Не удалось запустить редактор групп:\n{e}")
+            QMessageBox.critical(self, tr("exporter_error.title"), tr("exporter_error.text", error=e))
 
-    def delete_group_confirm(self, name):
-        ret = QMessageBox.question(self, 'Удаление', f"Удалить группу '{name}'?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        if ret == QMessageBox.StandardButton.Yes:
-            self.games_info["standalone"].extend(self.games_info["groups"].pop(name))
-            self.save_data(); self.refresh_list()
+    def finalize_history_session(self, duration, game_data):
+        gid = game_data.get('id')
+        found_game = None
+        all_lists = [self.games_info["standalone"]] + list(self.games_info["groups"].values())
+        
+        for lst in all_lists:
+            for g in lst:
+                if (gid and g.get('id') == gid) or (g['name'] == game_data['name']):
+                    g['playtime_seconds'] = g.get('playtime_seconds', 0) + duration
+                    found_game = g
+                    break
+            if found_game:
+                break
 
-    def move_game_to_group(self, identifier, target):
-        def matches(g):
-            return g.get("id") == identifier if g.get("id") else g["name"] == identifier
+        now_str = datetime.now().strftime("%d.%m.%Y %H:%M")
+        history_entry = {
+            "name": game_data['name'],
+            "icon": game_data.get('icon', ''),
+            "date": now_str,
+            "session_time": duration
+        }
+        self.games_info["history"].insert(0, history_entry)
+        self.save_data()
+        self.refresh_list()
 
-        game = None
-        for i, g in enumerate(self.games_info["standalone"]):
-            if matches(g): game = self.games_info["standalone"].pop(i); break
-        if not game:
-            for gn in self.games_info["groups"]:
-                for i, g in enumerate(self.games_info["groups"][gn]):
-                    if matches(g): game = self.games_info["groups"][gn].pop(i); break
-                if game: break
-        if game:
-            if target and target != "БЕЗ ГРУППЫ": self.games_info["groups"][target].append(game)
-            else: self.games_info["standalone"].append(game)
-            self.save_data(); self.refresh_list()
+    def delete_history_entry(self, index):
+        if 0 <= index < len(self.games_info.get("history", [])):
+            self.games_info["history"].pop(index)
+            self.save_data()
+            self.refresh_list()
+
+    def clear_history_confirm(self):
+        reply = QMessageBox.question(
+            self, tr("history_clear.confirm_title"),
+            tr("history_clear.confirm_text"),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self.games_info["history"] = []
+            self.save_data()
+            self.refresh_list()
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv); app.setStyle("Fusion")
+    app = QApplication(sys.argv)
+    app.setWindowIcon(QIcon(_find_favicon_path()))
     apply_global_style(app)
-    ex = GORLauncher(); ex.show(); sys.exit(app.exec())
+    launcher = GORLauncher()
+    launcher.show()
+    sys.exit(app.exec())

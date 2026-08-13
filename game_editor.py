@@ -6,15 +6,18 @@ from PyQt6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLineEdit,
                              QPushButton, QHBoxLayout, QLabel, QFileDialog, 
                              QCheckBox, QComboBox, QMessageBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from PyQt6.QtGui import QPixmap, QIcon
 
 from style_loader import apply_global_style
+from lang_loader import tr
+
+NO_GROUP_KEY = "Без группы"  # внутренний ключ данных - НЕ переводится
 
 class GameEditor(QDialog):
     def __init__(self, parent=None, game_data=None, groups=None, current_group=None):
         super().__init__(parent)
         self.data_file = "games_data.json"
-        self.setWindowTitle("Настройка игры GOR")
+        self.setWindowTitle(tr("game_editor.title"))
         self.setObjectName("EditorDialog")
         self.setFixedWidth(600)
         
@@ -23,7 +26,7 @@ class GameEditor(QDialog):
         
         # Защита: собираем существующие группы из JSON, исключая повторение "Без группы"
         existing_groups = list(self.all_data.get("groups", {}).keys())
-        self.groups = groups or [g for g in existing_groups if g != "Без группы"]
+        self.groups = groups or [g for g in existing_groups if g != NO_GROUP_KEY]
         
         # Безопасное сохранение оригинального имени/id для проверки при редактировании
         self.original_name = game_data['name'] if (game_data and 'name' in game_data) else None
@@ -31,10 +34,10 @@ class GameEditor(QDialog):
         
         self.game_data = game_data or {
             "id": None, "name": "", "path": "", "root_path": "", "icon": "", 
-            "group": "Без группы", "args": "", 
+            "group": NO_GROUP_KEY, "args": "", 
             "playtime_seconds": 0, "favorite": False
         }
-        self.current_group = current_group or self.game_data.get("group", "Без группы")
+        self.current_group = current_group or self.game_data.get("group", NO_GROUP_KEY)
         
         self.init_ui()
 
@@ -64,54 +67,54 @@ class GameEditor(QDialog):
         layout = QVBoxLayout(self)
 
         # --- НАЗВАНИЕ ---
-        layout.addWidget(QLabel("Название мода/игры:"))
+        layout.addWidget(QLabel(tr("game_editor.name_label")))
         self.name_edit = QLineEdit(self.game_data.get('name', ''))
         layout.addWidget(self.name_edit)
 
         # --- ПУТЬ К ФАЙЛУ ---
-        layout.addWidget(QLabel("Файл запуска (любой тип файла):"))
+        layout.addWidget(QLabel(tr("game_editor.path_label")))
         path_layout = QHBoxLayout()
         self.path_edit = QLineEdit(self.game_data.get('path', ''))
-        self.path_btn = QPushButton("📁 Обзор")
+        self.path_btn = QPushButton(tr("common.browse"))
         self.path_btn.clicked.connect(self.select_path)
         path_layout.addWidget(self.path_edit)
         path_layout.addWidget(self.path_btn)
         layout.addLayout(path_layout)
 
         # --- КОРНЕВАЯ ПАПКА ---
-        layout.addWidget(QLabel("Корневая папка игры:"))
+        layout.addWidget(QLabel(tr("game_editor.root_label")))
         root_path_layout = QHBoxLayout()
         self.root_path_edit = QLineEdit(self.game_data.get('root_path', ''))
-        self.root_path_btn = QPushButton("📂 Папка")
+        self.root_path_btn = QPushButton(tr("game_editor.root_btn"))
         self.root_path_btn.clicked.connect(self.select_root_path)
         root_path_layout.addWidget(self.root_path_edit)
         root_path_layout.addWidget(self.root_path_btn)
         layout.addLayout(root_path_layout)
 
         # --- АРГУМЕНТЫ (выделены акцентной рамкой через objectName ArgsInput) ---
-        layout.addWidget(QLabel("Аргументы запуска:"))
+        layout.addWidget(QLabel(tr("game_editor.args_label")))
         self.args_edit = QLineEdit(self.game_data.get('args', ''))
         self.args_edit.setObjectName("ArgsInput")
-        self.args_edit.setPlaceholderText("-game folder_name")
+        self.args_edit.setPlaceholderText(tr("game_editor.args_placeholder"))
         layout.addWidget(self.args_edit)
 
         # --- ОБЛОЖКА ---
-        layout.addWidget(QLabel("Обложка (PNG/JPG):"))
+        layout.addWidget(QLabel(tr("game_editor.icon_label")))
         icon_layout = QHBoxLayout()
         self.icon_edit = QLineEdit(self.game_data.get('icon', ''))
-        self.icon_btn = QPushButton("🖼️ Фото")
+        self.icon_btn = QPushButton(tr("game_editor.icon_btn"))
         self.icon_btn.clicked.connect(self.select_icon)
         icon_layout.addWidget(self.icon_edit)
         icon_layout.addWidget(self.icon_btn)
         layout.addLayout(icon_layout)
 
         preview_box = QHBoxLayout()
-        self.preview_label = QLabel("Нет фото")
+        self.preview_label = QLabel(tr("game_editor.no_photo"))
         self.preview_label.setObjectName("PreviewLabel")
         self.preview_label.setFixedSize(200, 260)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.fav_check = QCheckBox("⭐️ ДОБАВИТЬ В ИЗБРАННОЕ")
+        self.fav_check = QCheckBox(tr("game_editor.favorite_check"))
         self.fav_check.setObjectName("FavCheck")
         self.fav_check.setChecked(self.game_data.get('favorite', False))
 
@@ -123,19 +126,26 @@ class GameEditor(QDialog):
         if self.game_data.get('icon'): self.update_preview()
 
         # --- ВЫБОР ГРУППЫ ---
-        layout.addWidget(QLabel("Назначить в группу:"))
+        # Отображаемый текст переведён, но реальное значение ("Без группы")
+        # хранится как userData, чтобы не ломать сохранённые games_data.json
+        layout.addWidget(QLabel(tr("game_editor.group_label")))
         self.group_box = QComboBox()
-        self.group_box.addItem("Без группы")
-        self.group_box.addItems(self.groups)
-        self.group_box.setCurrentText(self.current_group)
+        self.group_box.addItem(tr("common.no_group"), NO_GROUP_KEY)
+        for g in self.groups:
+            self.group_box.addItem(g, g)
+        idx = self.group_box.findData(self.current_group)
+        if idx == -1:
+            idx = self.group_box.findText(self.current_group)
+        if idx != -1:
+            self.group_box.setCurrentIndex(idx)
         layout.addWidget(self.group_box)
 
         # --- КНОПКИ ---
         btns = QHBoxLayout()
-        save_btn = QPushButton("СОХРАНИТЬ")
+        save_btn = QPushButton(tr("common.save"))
         save_btn.clicked.connect(self.save_and_accept)
 
-        cancel_btn = QPushButton("ОТМЕНА")
+        cancel_btn = QPushButton(tr("common.cancel"))
         cancel_btn.setObjectName("CancelBtn")
         cancel_btn.clicked.connect(self.reject)
 
@@ -171,11 +181,11 @@ class GameEditor(QDialog):
     def save_and_accept(self):
         name = self.name_edit.text().strip()
         if not name:
-            QMessageBox.warning(self, "Ошибка", "Название игры не может быть пустым!")
+            QMessageBox.warning(self, tr("common.error"), tr("game_editor.name_empty_error"))
             return
 
         if self.name_exists(name, exclude_id=self.original_id):
-            QMessageBox.warning(self, "Ошибка", "Игра с таким именем уже существует!")
+            QMessageBox.warning(self, tr("common.error"), tr("game_editor.name_exists_error"))
             return
 
         if self.original_name:
@@ -186,7 +196,7 @@ class GameEditor(QDialog):
         new_data = self.get_data()
         target_group = new_data.pop('group')
         
-        if target_group == "Без группы":
+        if target_group == NO_GROUP_KEY:
             self.all_data["standalone"].append(new_data)
         else:
             if target_group not in self.all_data["groups"]:
@@ -197,15 +207,15 @@ class GameEditor(QDialog):
         self.accept()
 
     def select_path(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Выбрать файл запуска", "", "Все файлы (*.*)")
+        file, _ = QFileDialog.getOpenFileName(self, tr("game_editor.select_launch_file"), "", tr("common.all_files"))
         if file: self.path_edit.setText(file)
 
     def select_root_path(self):
-        folder = QFileDialog.getExistingDirectory(self, "Выбрать корневую папку игры")
+        folder = QFileDialog.getExistingDirectory(self, tr("game_editor.select_root_folder"))
         if folder: self.root_path_edit.setText(folder)
 
     def select_icon(self):
-        file, _ = QFileDialog.getOpenFileName(self, "Выбрать обложку", "", "Images (*.png *.jpg *.jpeg)")
+        file, _ = QFileDialog.getOpenFileName(self, tr("game_editor.select_cover"), "", tr("common.images_filter"))
         if file: 
             self.icon_edit.setText(file)
             self.update_preview()
@@ -216,7 +226,7 @@ class GameEditor(QDialog):
             pix = QPixmap(path)
             self.preview_label.setPixmap(pix.scaled(200, 260, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         else:
-            self.preview_label.setText("Файл не найден")
+            self.preview_label.setText(tr("game_editor.file_not_found"))
 
     def get_data(self):
         data = {
@@ -225,7 +235,7 @@ class GameEditor(QDialog):
             "path": self.path_edit.text(), 
             "root_path": self.root_path_edit.text(),
             "icon": self.icon_edit.text(), 
-            "group": self.group_box.currentText(),
+            "group": self.group_box.currentData() if self.group_box.currentData() is not None else self.group_box.currentText(),
             "args": self.args_edit.text(),
             "favorite": self.fav_check.isChecked()
         }
@@ -235,21 +245,22 @@ class GameEditor(QDialog):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
+    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
     apply_global_style(app)
     
     found_game = None
-    found_group = "Без группы"
+    found_group = NO_GROUP_KEY
     
     if len(sys.argv) > 1:
         search_name = sys.argv[1]
-        search_group = sys.argv[2] if len(sys.argv) > 2 else "Без группы"
+        search_group = sys.argv[2] if len(sys.argv) > 2 else NO_GROUP_KEY
         search_id = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else None
         
         dummy = GameEditor(game_data=None)
         
-        if search_group == "Без группы" or search_group == "БЕЗ ГРУППЫ":
+        if search_group == NO_GROUP_KEY or search_group == "БЕЗ ГРУППЫ":
             candidates = dummy.all_data.get("standalone", [])
-            target_group_name = "Без группы"
+            target_group_name = NO_GROUP_KEY
         else:
             candidates = dummy.all_data.get("groups", {}).get(search_group, [])
             target_group_name = search_group

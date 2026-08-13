@@ -386,6 +386,25 @@ QFrame#HistoryCard:focus {
     border: 3px solid #ffcc00;
 }
 
+/* Карточка запущенной игры: красная рамка вместо обычной, переключается
+   динамическим свойством "running" (см. GameCard.set_running_visual). */
+QFrame#GameCard[running="true"] {
+    border: 2px solid #d9534f;
+}
+QFrame#GameCard[running="true"]:hover {
+    border: 2px solid #d9534f;
+}
+
+/* Бейдж "ИГРАЕТ" над обложкой - виден, только пока запущена игра. */
+QLabel#RunningBadge {
+    background-color: rgba(217, 83, 79, 0.9);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 8px;
+    padding: 4px 10px;
+}
+
 QLabel#GameCardImage {
     background-color: #0d0d0d;
     border-radius: 12px;
@@ -438,6 +457,15 @@ QPushButton#RunGameBtn {
     border: none;
     border-radius: 8px;
 }
+/* Кнопка "ЗАПУСТИТЬ" превращается в "ОТКЛЮЧИТЬ", когда игра запущена -
+   тем же свойством "running", что и рамка карточки. */
+QPushButton#RunGameBtn[running="true"] {
+    background-color: #d9534f;
+    color: #ffffff;
+}
+QPushButton#RunGameBtn[running="true"]:hover {
+    background-color: #c9302c;
+}
 QPushButton#OpenFolderBtn {
     background-color: #333333;
     font-size: 20px;
@@ -459,6 +487,35 @@ QLabel#GroupTitleLabel {
    динамическое свойство "favorite" (см. GroupWidget.init_ui). */
 QLabel#GroupTitleLabel[favorite="true"] {
     color: #ffcc00;
+}
+
+/* Компактные квадратные кнопки управления в шапке (Перезапуск и Гамбургер-меню) */
+QPushButton#RestartBtn,
+QPushButton#BurgerMenuBtn {
+    padding: 0px;
+    font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', sans-serif;
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    min-height: 38px;
+    max-height: 38px;
+    min-width: 38px;
+    max-width: 38px;
+}
+QPushButton#RestartBtn:hover,
+QPushButton#BurgerMenuBtn:hover {
+    background-color: #007acc;
+    border: 1px solid #005f9e;
+}
+QPushButton#RestartBtn:pressed,
+QPushButton#BurgerMenuBtn:pressed {
+    background-color: #005f9e;
+}
+QPushButton#BurgerMenuBtn::menu-indicator {
+    image: none;
+    width: 0px;
 }
 
 
@@ -540,4 +597,34 @@ QDialog#EditorDialog QCheckBox#FavCheck {
     font-weight: bold;
     color: #ffcc00;
     margin-left: 10px;
+}
+
+
+/* ---------------------------------------------------------------------
+   7. fortune_wheel.py - специфичные элементы (Колесо Фортуны)
+   --------------------------------------------------------------------- */
+
+QLabel#WheelTitleLabel {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 10px;
+    color: #007acc;
+}
+/* Текст ошибки/пустого списка игр - переключается через
+   setProperty("error", "true") в FortuneWheelDialog.set_title_text() */
+QLabel#WheelTitleLabel[error="true"] {
+    font-size: 14px;
+    color: #ff6666;
+}
+
+/* Зелёная кнопка подтверждения запуска выбранной игры */
+QPushButton#SuccessBtn {
+    background-color: #1e8449;
+    border: 1px solid #145a32;
+}
+QPushButton#SuccessBtn:hover {
+    background-color: #229954;
+}
+QPushButton#SuccessBtn:pressed {
+    background-color: #145a32;
 }
