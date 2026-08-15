@@ -408,6 +408,10 @@ class UpdaterDialog(QDialog):
 
     def install_update(self):
         if self.latest_info is None:
+            QMessageBox.information(
+                self, tr("updater.window_title"),
+                tr("updater.check_first_hint"),
+            )
             return
         reply = QMessageBox.question(
             self, tr("updater.confirm_title"),
