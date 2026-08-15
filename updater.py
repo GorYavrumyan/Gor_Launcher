@@ -61,6 +61,12 @@ ARCHIVE_URL = (
 # при обновлении - пользовательская библиотека игр, история и настройки.
 PROTECTED_FILE = "games_data.json"
 
+# Папки, которые НЕ пропускаются при обновлении, а синхронизируются
+# рекурсивно (файл за файлом, поверх существующих). Сейчас это только
+# папка с переводами - её обновление ничем не грозит пользовательским
+# данным.
+UPDATABLE_FOLDERS = {"lang"}
+
 # Локальный файл с версией, которая установлена у пользователя прямо сейчас.
 # Он же и есть version.json из репозитория - при обновлении он будет
 # перезаписан новой версией автоматически, вместе с остальными файлами.
@@ -92,9 +98,11 @@ class UpdateWorker(QThread):
                        временную папку и безопасно скопировать файлы в проект.
 
     Ключевая защита (см. _safe_copy_files):
-      1. Любая ПАПКА в PROJECT_SUBFOLDER архива - полностью пропускается
-         (не создаётся, не удаляется, не перезаписывается).
-      2. Файл games_data.json - пропускается всегда.
+      1. Любая ПАПКА в корне архива - пропускается (не создаётся, не
+         удаляется, не перезаписывается), КРОМЕ папок из UPDATABLE_FOLDERS
+         (сейчас это "lang") - они синхронизируются рекурсивно.
+      2. Файл games_data.json - пропускается всегда, даже внутри
+         синхронизируемых папок.
       3. Все остальные одиночные файлы - перезаписывают файлы в корне проекта
          (включая сам version.json - так текущая версия обновляется
          автоматически вместе с остальными файлами).
@@ -244,9 +252,12 @@ class UpdateWorker(QThread):
                         self.progress_signal.emit(int(downloaded * 100 / total_size))
 
     def _safe_copy_files(self, source_root, project_root):
-        """Копирует только отдельные файлы из КОРНЯ source_root (папка
-        Launcher внутри архива) в корень проекта, строго исключая папки
-        и games_data.json."""
+        """Копирует отдельные файлы из КОРНЯ source_root (папка Launcher
+        внутри архива) в корень проекта.
+
+        Папки пропускаются полностью, КРОМЕ тех, что перечислены в
+        UPDATABLE_FOLDERS (сейчас - "lang") - их содержимое синхронизируется
+        рекурсивно поверх уже существующей папки в проекте."""
 
         entries = sorted(os.listdir(source_root))
         total = len(entries) if entries else 1
@@ -257,9 +268,14 @@ class UpdateWorker(QThread):
 
             src_path = os.path.join(source_root, entry)
 
-            # Правило 1: любая папка - полностью пропускается
             if os.path.isdir(src_path):
-                self.status_signal.emit(tr("updater.skip_folder", name=entry))
+                if entry in UPDATABLE_FOLDERS:
+                    # Папка из белого списка - синхронизируем её содержимое
+                    self.status_signal.emit(tr("updater.updating_file", name=entry))
+                    self._sync_folder(src_path, os.path.join(project_root, entry))
+                else:
+                    # Правило 1: любая другая папка - полностью пропускается
+                    self.status_signal.emit(tr("updater.skip_folder", name=entry))
                 self.progress_signal.emit(int((idx + 1) / total * 100))
                 continue
 
@@ -274,6 +290,24 @@ class UpdateWorker(QThread):
             self.status_signal.emit(tr("updater.updating_file", name=entry))
             shutil.copy2(src_path, dest_path)
             self.progress_signal.emit(int((idx + 1) / total * 100))
+
+    def _sync_folder(self, src_dir, dest_dir):
+        """Рекурсивно копирует содержимое папки (например "lang") поверх
+        уже существующей в проекте, создавая недостающие подпапки и файлы.
+        PROTECTED_FILE пропускается даже здесь - на всякий случай, если он
+        вдруг окажется внутри такой папки."""
+        os.makedirs(dest_dir, exist_ok=True)
+        for entry in sorted(os.listdir(src_dir)):
+            if self._cancelled:
+                return
+            src_path = os.path.join(src_dir, entry)
+            dest_path = os.path.join(dest_dir, entry)
+            if os.path.isdir(src_path):
+                self._sync_folder(src_path, dest_path)
+            else:
+                if entry == PROTECTED_FILE:
+                    continue
+                shutil.copy2(src_path, dest_path)
 
 
 class UpdaterDialog(QDialog):
@@ -309,6 +343,10 @@ class UpdaterDialog(QDialog):
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
+        # Полоса прогресса скрыта, пока реально не началась установка
+        # обновления (появляется только в install_update, а не во время
+        # обычной проверки версии).
+        self.progress_bar.setVisible(False)
         layout.addWidget(self.progress_bar)
 
         btn_layout = QHBoxLayout()
@@ -344,6 +382,8 @@ class UpdaterDialog(QDialog):
         self.install_btn.setEnabled(not busy and self.latest_info is not None)
 
     def check_updates(self):
+        # Во время простой проверки версии полоса прогресса не нужна
+        self.progress_bar.setVisible(False)
         self.progress_bar.setValue(0)
         self._start_worker(UpdateWorker.MODE_CHECK)
 
@@ -357,6 +397,9 @@ class UpdaterDialog(QDialog):
         if reply != QMessageBox.StandardButton.Yes:
             return
         self.progress_bar.setValue(0)
+        # Показываем полосу прогресса только сейчас - обновление лаунчера
+        # действительно началось.
+        self.progress_bar.setVisible(True)
         self._start_worker(UpdateWorker.MODE_INSTALL)
 
     def _on_check_result(self, info):
