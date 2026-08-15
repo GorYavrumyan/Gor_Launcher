@@ -1,6 +1,8 @@
 {
-    "_meta": { "code": "es", "name": "Español" },
-
+    "_meta": {
+        "code": "es",
+        "name": "Español"
+    },
     "common": {
         "error": "Error",
         "delete": "Eliminar",
@@ -13,7 +15,6 @@
         "all_files": "Todos los archivos (*.*)",
         "images_filter": "Imágenes (*.png *.jpg *.jpeg)"
     },
-
     "launcher": {
         "window_title": "GOR Launcher",
         "app_title": "GOR UNIVERSAL",
@@ -47,7 +48,6 @@
         "sort_playtime_asc": "Tiempo jugado (menor → mayor)",
         "sort_newest": "Primero los nuevos"
     },
-
     "game_card": {
         "run": "INICIAR",
         "stop": "DETENER",
@@ -59,40 +59,33 @@
         "copy_path": "📋 Copiar ruta",
         "launch_error": "No se pudo iniciar:\n{error}"
     },
-
     "history_card": {
         "delete_entry": "🗑️ Eliminar entrada",
         "session_time": "⌛ Sesión: {h}h {m}m",
         "date_prefix": "📅 {date}"
     },
-
     "group": {
         "rename": "✏️ Renombrar",
         "delete_group": "❌ Eliminar grupo",
         "delete_confirm_title": "Eliminar grupo",
         "delete_confirm_text": "¿Seguro que quieres eliminar el grupo «{name}»?\nTodos los juegos pasarán a la lista sin grupo."
     },
-
     "game_delete": {
         "confirm_title": "Eliminar juego",
         "confirm_text": "¿Seguro que quieres eliminar «{name}»?"
     },
-
     "history_clear": {
         "confirm_title": "Borrar historial",
         "confirm_text": "¿Seguro que quieres borrar por completo el historial de partidas?"
     },
-
     "sunshine_error": {
         "title": "Error",
         "text": "No se pudo iniciar Sunshine Control:\n{error}"
     },
-
     "exporter_error": {
         "title": "Error",
         "text": "No se pudo iniciar Exporter:\n{error}"
     },
-
     "game_editor": {
         "title": "Ajustes del juego",
         "name_label": "Nombre del mod/juego:",
@@ -113,7 +106,6 @@
         "select_root_folder": "Seleccionar carpeta raíz del juego",
         "select_cover": "Seleccionar portada"
     },
-
     "group_editor": {
         "title_edit": "Editar grupo",
         "title_create": "Crear grupo",
@@ -123,7 +115,6 @@
         "name_exists_edit_error": "¡Ya existe un grupo con ese nombre!",
         "name_exists_create_error": "¡Ese grupo ya existe!"
     },
-
     "exporter": {
         "window_title": "GOR Packer",
         "default_name": "MyLibraryExport",
@@ -142,7 +133,6 @@
         "packing_label": "Empaquetando {name}",
         "assembling_label": "Ensamblando archivo maestro"
     },
-
     "control_center": {
         "window_title": "GOR Control Center - Gestión de complementos",
         "empty_page_text": "⬅️ Selecciona un complemento a la izquierda para abrir su interfaz",
@@ -177,7 +167,6 @@
         "sample_info": "El complemento se inicializó sin errores.",
         "sample_error": "No se pudo encontrar el archivo de configuración de streaming."
     },
-
     "sunshine": {
         "window_title": "Sunshine Control",
         "title": "SUNSHINE CONTROL",
@@ -209,7 +198,6 @@
         "process_stopped": "El proceso de Sunshine se ha detenido.",
         "data_not_found": "¡No se encontró games_data.json!"
     },
-
     "sunshine_log": {
         "app_started": "Aplicación iniciada.",
         "opening_web": "Abriendo panel web: {url}",
@@ -236,7 +224,6 @@
         "creds_applied": "Credenciales aplicadas, proceso iniciado.",
         "creds_error": "Error al aplicar las credenciales: {error}"
     },
-
     "wheel": {
         "window_title": "Juego aleatorio — Rueda de la fortuna",
         "default_title": "¿A qué jugamos hoy?",
@@ -250,14 +237,15 @@
         "result": "Salió: ¡{name}!",
         "default_game_name": "Juego"
     },
-
     "updater": {
         "window_title": "Actualización de GOR Launcher",
         "status_initial": "Versión actual: {version}.\nPulsa «COMPROBAR ACTUALIZACIONES».",
         "check_btn": "COMPROBAR ACTUALIZACIONES",
         "install_btn": "INSTALAR ACTUALIZACIÓN",
+        "learn_more_btn": "MÁS INFORMACIÓN",
         "confirm_title": "Confirmación",
         "confirm_text": "¿Instalar la actualización ahora?\nNinguna carpeta ni el archivo games_data.json se verán afectados.",
+        "check_first_hint": "Primero pulsa «Comprobar actualizaciones» para ver si hay una nueva versión disponible.",
         "already_latest": "Ya tienes la última versión ({version}).",
         "update_available": "Hay una nueva versión disponible: {remote} (actual: {current}).",
         "restart_prompt": "{message}\n\n¿Reiniciar el launcher ahora?",

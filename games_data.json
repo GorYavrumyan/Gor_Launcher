@@ -216,7 +216,7 @@
                 "icon": "F:/fails/Foto_video/Games/Designed for Danger_2.png",
                 "args": "+map dfd_1_intro",
                 "favorite": false,
-                "playtime_seconds": 22,
+                "playtime_seconds": 2980,
                 "id": "ae16983d-9bca-4e51-bdf2-e1baa683740b"
             },
             {
@@ -228,6 +228,16 @@
                 "args": "",
                 "favorite": false,
                 "playtime_seconds": 0
+            },
+            {
+                "id": "26e469e0-e743-419d-81c6-46d7dc0a232d",
+                "name": "Portal Remastered",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2/portal_remastered",
+                "icon": "",
+                "args": "-game portal_remastered -language russian -novid",
+                "favorite": false,
+                "playtime_seconds": 2749
             }
         ],
         "Half-Life": [
@@ -326,6 +336,102 @@
     },
     "standalone": [],
     "history": [
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:58",
+            "session_time": 51
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:55",
+            "session_time": 45
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:54",
+            "session_time": 113
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:50",
+            "session_time": 92
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:47",
+            "session_time": 1045
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:29",
+            "session_time": 220
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:18",
+            "session_time": 7
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:14",
+            "session_time": 9
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 19:11",
+            "session_time": 10
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:59",
+            "session_time": 477
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:51",
+            "session_time": 23
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:49",
+            "session_time": 101
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:47",
+            "session_time": 215
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:44",
+            "session_time": 274
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "",
+            "date": "13.08.2026 18:21",
+            "session_time": 67
+        },
+        {
+            "name": "Portal Designed For Danger",
+            "icon": "F:/fails/Foto_video/Games/Designed for Danger_2.png",
+            "date": "13.08.2026 17:30",
+            "session_time": 2958
+        },
         {
             "name": "GitHub Desktop",
             "icon": "F:/fails/Foto_video/Games/GitHub Desktop.jpg",
@@ -1007,5 +1113,6 @@
     ],
     "addons_list": [
         "addon_1"
-    ]
+    ],
+    "language": "ru"
 }

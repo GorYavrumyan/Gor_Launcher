@@ -238,7 +238,10 @@ def check_updates_in_background(launcher):
     def on_check_result(info):
         remote_version = info.get("version")
         if remote_version and remote_version != current_version:
-            show_update_available_button(launcher, remote_version)
+            # Передаём весь словарь version.json дальше - когда пользователь
+            # откроет диалог обновления, повторная проверка уже не нужна:
+            # мы и так точно знаем, что новая версия есть.
+            show_update_available_button(launcher, info)
 
     def on_finished(success, message):
         if not success:
@@ -249,13 +252,18 @@ def check_updates_in_background(launcher):
     checker.start()
 
 
-def show_update_available_button(launcher, remote_version):
+def show_update_available_button(launcher, info):
     if getattr(launcher, "_update_btn_added", False):
         return
     launcher._update_btn_added = True
 
+    remote_version = info.get("version")
+
     def open_updater():
-        dialog = UpdaterDialog(launcher)
+        # info уже получен фоновой проверкой при старте - передаём его в
+        # диалог, чтобы кнопка "Установить" была активна сразу, без
+        # необходимости нажимать "Проверить обновления" ещё раз.
+        dialog = UpdaterDialog(launcher, known_info=info)
         dialog.exec()
 
     btn = QPushButton(tr("launcher.update_available_btn", version=remote_version))

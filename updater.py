@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import zipfile
 import urllib.request
+import webbrowser
 
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtGui import QIcon
@@ -57,6 +58,10 @@ ARCHIVE_URL = (
     f"https://codeload.github.com/{GITHUB_OWNER}/{GITHUB_REPO}/zip/refs/heads/{GITHUB_BRANCH}"
 )
 
+# Ссылка, которую открывает кнопка "Узнать больше" (страница релизов
+# репозитория - там можно посмотреть список изменений перед установкой).
+LEARN_MORE_URL = f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases"
+
 # Файл, который ни при каких обстоятельствах не должен перезаписываться
 # при обновлении - пользовательская библиотека игр, история и настройки.
 PROTECTED_FILE = "games_data.json"
@@ -65,6 +70,8 @@ PROTECTED_FILE = "games_data.json"
 # рекурсивно (файл за файлом, поверх существующих). Сейчас это только
 # папка с переводами - её обновление ничем не грозит пользовательским
 # данным.
+# Сравнение регистронезависимое (см. _safe_copy_files) - на случай, если
+# папка в репозитории или локально называется "Lang"/"LANG" и т.п.
 UPDATABLE_FOLDERS = {"lang"}
 
 # Локальный файл с версией, которая установлена у пользователя прямо сейчас.
@@ -269,10 +276,15 @@ class UpdateWorker(QThread):
             src_path = os.path.join(source_root, entry)
 
             if os.path.isdir(src_path):
-                if entry in UPDATABLE_FOLDERS:
-                    # Папка из белого списка - синхронизируем её содержимое
+                # Регистронезависимое сравнение - "lang", "Lang", "LANG"
+                # должны считаться одной и той же папкой из белого списка.
+                if entry.lower() in {f.lower() for f in UPDATABLE_FOLDERS}:
+                    # Папка из белого списка - синхронизируем её содержимое.
+                    # Пункт назначения ищем в project_root без учёта регистра,
+                    # чтобы не создать рядом дубликат вида "lang" + "Lang".
+                    dest_name = self._match_existing_name(project_root, entry)
                     self.status_signal.emit(tr("updater.updating_file", name=entry))
-                    self._sync_folder(src_path, os.path.join(project_root, entry))
+                    self._sync_folder(src_path, os.path.join(project_root, dest_name))
                 else:
                     # Правило 1: любая другая папка - полностью пропускается
                     self.status_signal.emit(tr("updater.skip_folder", name=entry))
@@ -290,6 +302,18 @@ class UpdateWorker(QThread):
             self.status_signal.emit(tr("updater.updating_file", name=entry))
             shutil.copy2(src_path, dest_path)
             self.progress_signal.emit(int((idx + 1) / total * 100))
+
+    def _match_existing_name(self, parent_dir, name):
+        """Возвращает имя уже существующей в parent_dir папки/файла, если оно
+        совпадает с name без учёта регистра (например локально "Lang", а в
+        архиве "lang") - чтобы не наплодить две разные папки рядом. Если
+        совпадений нет, просто возвращает исходное имя."""
+        if not os.path.isdir(parent_dir):
+            return name
+        for existing in os.listdir(parent_dir):
+            if existing.lower() == name.lower():
+                return existing
+        return name
 
     def _sync_folder(self, src_dir, dest_dir):
         """Рекурсивно копирует содержимое папки (например "lang") поверх
@@ -314,7 +338,12 @@ class UpdaterDialog(QDialog):
     """Окно обновления GOR Launcher, оформленное в едином стиле проекта
     (style.qss, селектор #EditorDialog)."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, known_info=None):
+        """known_info - словарь из version.json, если версия уже была
+        проверена ДО открытия диалога (например фоновой проверкой при
+        запуске лаунчера, см. bridge_loader.check_updates_in_background).
+        В этом случае повторное нажатие "Проверить обновления" не нужно -
+        кнопка установки становится активной сразу."""
         super().__init__(parent)
         self.current_version = get_local_version()
         self.worker = None
@@ -323,14 +352,30 @@ class UpdaterDialog(QDialog):
         self.setObjectName("EditorDialog")
         self.setWindowTitle(tr("updater.window_title"))
         self.setWindowIcon(QIcon(_find_favicon_path()))
-        self.setFixedWidth(550)
+        # Не фиксируем ширину жёстко - у длинных переводов (армянский,
+        # русский) текст на кнопках иначе обрезается. setMinimumWidth
+        # задаёт нижнюю границу, а само окно подстроится под содержимое.
+        self.setMinimumWidth(550)
 
         self._init_ui()
+
+        if known_info:
+            # Версия уже известна из фоновой проверки при старте лаунчера -
+            # кнопка установки активна сразу, без лишних действий.
+            self._on_check_result(known_info)
+        else:
+            # known_info не передали (например при прямом запуске файла) -
+            # сами тихо проверяем версию в фоне, чтобы кнопка установки
+            # стала активна сама, без нажатия отдельной кнопки "проверить".
+            self._start_worker(UpdateWorker.MODE_CHECK)
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
+        # Заставляет диалог расти вместе с содержимым (например если
+        # перевод кнопки не влезает в текущую ширину), а не обрезать текст.
+        layout.setSizeConstraint(QVBoxLayout.SizeConstraint.SetMinimumSize)
 
         title = QLabel(tr("updater.window_title"))
         layout.addWidget(title)
@@ -352,7 +397,7 @@ class UpdaterDialog(QDialog):
         btn_layout = QHBoxLayout()
 
         self.check_btn = QPushButton(tr("updater.check_btn"))
-        self.check_btn.clicked.connect(self.check_updates)
+        self.check_btn.clicked.connect(self._open_release_page)
 
         self.install_btn = QPushButton(tr("updater.install_btn"))
         self.install_btn.clicked.connect(self.install_update)
@@ -366,6 +411,9 @@ class UpdaterDialog(QDialog):
         btn_layout.addWidget(self.install_btn)
         btn_layout.addWidget(self.cancel_btn)
         layout.addLayout(btn_layout)
+
+    def _open_release_page(self):
+        webbrowser.open(LEARN_MORE_URL)
 
     # ------------------------------------------------------------------ #
     def _start_worker(self, mode):
@@ -381,14 +429,12 @@ class UpdaterDialog(QDialog):
         self.check_btn.setEnabled(not busy)
         self.install_btn.setEnabled(not busy and self.latest_info is not None)
 
-    def check_updates(self):
-        # Во время простой проверки версии полоса прогресса не нужна
-        self.progress_bar.setVisible(False)
-        self.progress_bar.setValue(0)
-        self._start_worker(UpdateWorker.MODE_CHECK)
-
     def install_update(self):
         if self.latest_info is None:
+            QMessageBox.information(
+                self, tr("updater.window_title"),
+                tr("updater.check_first_hint"),
+            )
             return
         reply = QMessageBox.question(
             self, tr("updater.confirm_title"),
