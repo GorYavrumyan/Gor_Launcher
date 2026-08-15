@@ -65,6 +65,8 @@ PROTECTED_FILE = "games_data.json"
 # рекурсивно (файл за файлом, поверх существующих). Сейчас это только
 # папка с переводами - её обновление ничем не грозит пользовательским
 # данным.
+# Сравнение регистронезависимое (см. _safe_copy_files) - на случай, если
+# папка в репозитории или локально называется "Lang"/"LANG" и т.п.
 UPDATABLE_FOLDERS = {"lang"}
 
 # Локальный файл с версией, которая установлена у пользователя прямо сейчас.
@@ -269,10 +271,15 @@ class UpdateWorker(QThread):
             src_path = os.path.join(source_root, entry)
 
             if os.path.isdir(src_path):
-                if entry in UPDATABLE_FOLDERS:
-                    # Папка из белого списка - синхронизируем её содержимое
+                # Регистронезависимое сравнение - "lang", "Lang", "LANG"
+                # должны считаться одной и той же папкой из белого списка.
+                if entry.lower() in {f.lower() for f in UPDATABLE_FOLDERS}:
+                    # Папка из белого списка - синхронизируем её содержимое.
+                    # Пункт назначения ищем в project_root без учёта регистра,
+                    # чтобы не создать рядом дубликат вида "lang" + "Lang".
+                    dest_name = self._match_existing_name(project_root, entry)
                     self.status_signal.emit(tr("updater.updating_file", name=entry))
-                    self._sync_folder(src_path, os.path.join(project_root, entry))
+                    self._sync_folder(src_path, os.path.join(project_root, dest_name))
                 else:
                     # Правило 1: любая другая папка - полностью пропускается
                     self.status_signal.emit(tr("updater.skip_folder", name=entry))
@@ -290,6 +297,18 @@ class UpdateWorker(QThread):
             self.status_signal.emit(tr("updater.updating_file", name=entry))
             shutil.copy2(src_path, dest_path)
             self.progress_signal.emit(int((idx + 1) / total * 100))
+
+    def _match_existing_name(self, parent_dir, name):
+        """Возвращает имя уже существующей в parent_dir папки/файла, если оно
+        совпадает с name без учёта регистра (например локально "Lang", а в
+        архиве "lang") - чтобы не наплодить две разные папки рядом. Если
+        совпадений нет, просто возвращает исходное имя."""
+        if not os.path.isdir(parent_dir):
+            return name
+        for existing in os.listdir(parent_dir):
+            if existing.lower() == name.lower():
+                return existing
+        return name
 
     def _sync_folder(self, src_dir, dest_dir):
         """Рекурсивно копирует содержимое папки (например "lang") поверх
