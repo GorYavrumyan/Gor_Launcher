@@ -16,6 +16,16 @@ Sunshine-хост) на текущий компьютер по протокол�
 остальных модулях проекта (GorLauncher, sunshine_control, ControlCenter и т.д.).
 """
 
+
+import os
+import sys
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = _THIS_DIR if os.path.exists(os.path.join(_THIS_DIR, "bridge_loader.py")) else os.path.dirname(_THIS_DIR)
+for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
+    _p = os.path.join(_PROJECT_ROOT, _sub)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 import sys
 import os
 import json

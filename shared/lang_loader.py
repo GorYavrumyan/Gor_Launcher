@@ -49,21 +49,25 @@ def _detect_base_dir():
     Вместо этого используем тот же приём, что и весь остальной проект
     (GorLauncher.py, bridge_loader.py): os.path.dirname(os.path.abspath(sys.argv[0])) -
     это всегда папка реального .exe / .py, который был запущен.
-    """
-    import sys as _sys
-    candidate = os.path.dirname(os.path.abspath(_sys.argv[0]))
-    if os.path.isdir(os.path.join(candidate, LANG_DIRNAME)):
-        return candidate
 
-    # Фолбэк для редких случаев (например, интерактивный импорт),
-    # когда sys.argv[0] не указывает на реальный скрипт.
-    fallback = os.path.dirname(os.path.abspath(__file__))
-    if os.path.isdir(os.path.join(fallback, LANG_DIRNAME)):
-        return fallback
+    ПОСЛЕ РАЗБИВКИ ПО ПАПКАМ: сам lang_loader.py теперь лежит в shared/,
+    на уровень глубже корня проекта, поэтому старого fallback на __file__
+    уже недостаточно - добавили os.getcwd() (актуально при запуске
+    editors/*, remote/*, ... - они всегда стартуют с cwd в корне проекта)
+    и подъём на уровень выше self (shared/.. = корень проекта)."""
+    import sys as _sys
+    candidates = [
+        os.path.dirname(os.path.abspath(_sys.argv[0])),
+        os.getcwd(),
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    ]
+    for c in candidates:
+        if os.path.isdir(os.path.join(c, LANG_DIRNAME)) or os.path.exists(os.path.join(c, DATA_FILENAME)):
+            return c
 
     # Ничего не нашли - возвращаем первый вариант, чтобы сообщения об
     # ошибках ниже показывали реалистичный путь для диагностики.
-    return candidate
+    return candidates[0]
 
 
 _BASE_DIR = _detect_base_dir()

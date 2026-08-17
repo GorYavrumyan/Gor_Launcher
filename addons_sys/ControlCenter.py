@@ -1,17 +1,24 @@
 import os
 import sys
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = _THIS_DIR if os.path.exists(os.path.join(_THIS_DIR, "bridge_loader.py")) else os.path.dirname(_THIS_DIR)
+for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
+    _p = os.path.join(_PROJECT_ROOT, _sub)
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import os
+import sys
 import json
-import random
-from datetime import datetime
 
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QSplitter, QWidget, QTabWidget,
-    QLabel, QFrame, QPushButton, QMessageBox, QScrollArea,
-    QStyledItemDelegate, QStyle
+    QPushButton, QMessageBox,
+    QStyledItemDelegate, QStyle, QPlainTextEdit
 )
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import Qt, QUrl, QSize, QRect, QRectF, QEvent, QPointF
+from PyQt6.QtCore import Qt, QUrl, QSize, QRect, QRectF, QEvent, QPointF, QTimer
 from PyQt6.QtGui import QIcon, QPainter, QColor, QPen, QFont
 
 from style_loader import apply_global_style
@@ -157,181 +164,83 @@ class AddonDelegate(QStyledItemDelegate):
 
 
 # ----------------------------------------------------------------------
-# Карточка-контейнер вкладки мониторинга.
-# Стиль (фон/рамка/скругление) берётся из style.qss: QFrame#MonitorCard,
-# заголовок карточки — QLabel#CardTitle.
-# ----------------------------------------------------------------------
-def make_card(title_text=None):
-    frame = QFrame()
-    frame.setObjectName("MonitorCard")
-    lay = QVBoxLayout(frame)
-    lay.setContentsMargins(16, 14, 16, 14)
-    lay.setSpacing(10)
-    if title_text:
-        title = QLabel(title_text)
-        title.setObjectName("CardTitle")
-        lay.addWidget(title)
-    return frame, lay
-
-
-# ----------------------------------------------------------------------
-# Вкладка "Мониторинг" — динамически перестраивается под выбранный аддон
+# Вкладка "Мониторинг" — простое текстовое поле с логом выбранного аддона
 # ----------------------------------------------------------------------
 class MonitoringTab(QWidget):
 
-    def __init__(self, on_action, parent=None):
+    # Как часто перечитываем activity.json выбранного аддона с диска.
+    REFRESH_INTERVAL_MS = 1000
+
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.on_action = on_action  # callback(addon_path, action_name)
         self.current_addon = None
+        self._last_text = None  # чтобы не дёргать QPlainTextEdit, если ничего не изменилось
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setContentsMargins(16, 16, 16, 16)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        content = QWidget()
-        self.root_lay = QVBoxLayout(content)
-        self.root_lay.setContentsMargins(16, 16, 16, 16)
-        self.root_lay.setSpacing(14)
-        scroll.setWidget(content)
-        outer.addWidget(scroll)
+        self.log_text = QPlainTextEdit()
+        self.log_text.setObjectName("ActivityLog")
+        self.log_text.setReadOnly(True)
+        self.log_text.setPlaceholderText(tr("control_center.select_addon_hint"))
+        outer.addWidget(self.log_text)
 
-        # --- Карточка статуса ---
-        self.status_card, status_lay = make_card(tr("control_center.status_card_title"))
-        header = QHBoxLayout()
-        self.big_name = QLabel("—")
-        self.big_name.setObjectName("AddonBigName")
-        self.status_pill = QLabel(tr("control_center.status_unknown"))
-        self.status_pill.setObjectName("StatusPill")
-        header.addWidget(self.big_name, stretch=1)
-        header.addWidget(self.status_pill, alignment=Qt.AlignmentFlag.AlignRight)
-        status_lay.addLayout(header)
-
-        self.status_desc = QLabel(tr("control_center.select_addon_hint"))
-        self.status_desc.setObjectName("AddonRowSub")
-        self.status_desc.setWordWrap(True)
-        status_lay.addWidget(self.status_desc)
-
-        self.root_lay.addWidget(self.status_card)
-
-        # --- Карточка лога активности ---
-        self.log_card, log_lay = make_card(tr("control_center.log_card_title"))
-        self.log_list = QListWidget()
-        self.log_list.setObjectName("ActivityLog")
-        self.log_list.setMinimumHeight(220)
-        log_lay.addWidget(self.log_list)
-        self.root_lay.addWidget(self.log_card)
-
-        # --- Карточка интерактивных элементов управления ---
-        self.controls_card, ctrl_lay = make_card(tr("control_center.controls_card_title"))
-        btn_row = QHBoxLayout()
-
-        # Акцентная кнопка (стиль #PrimaryBtn из style.qss)
-        self.approve_btn = QPushButton(tr("control_center.approve_btn"))
-        self.approve_btn.setObjectName("PrimaryBtn")
-        self.approve_btn.clicked.connect(lambda: self._fire("approve"))
-
-        # Обычная кнопка — без objectName, берёт базовый стиль QPushButton
-        self.restart_btn = QPushButton(tr("control_center.restart_addon_btn"))
-        self.restart_btn.clicked.connect(lambda: self._fire("restart"))
-
-        # Красная "опасная" кнопка — переиспользуем уже существующий
-        # в style.qss стиль #StopBtn (тот же, что и для остановки процесса)
-        self.revoke_btn = QPushButton(tr("control_center.revoke_btn"))
-        self.revoke_btn.setObjectName("StopBtn")
-        self.revoke_btn.clicked.connect(lambda: self._fire("revoke"))
-
-        btn_row.addWidget(self.approve_btn)
-        btn_row.addWidget(self.restart_btn)
-        btn_row.addWidget(self.revoke_btn)
-        ctrl_lay.addLayout(btn_row)
-
-        self.root_lay.addWidget(self.controls_card)
-        self.root_lay.addStretch()
-
-        self._set_enabled(False)
-
-    def _fire(self, action_name):
-        if self.current_addon and self.on_action:
-            self.on_action(self.current_addon, action_name)
-
-    def _set_enabled(self, value):
-        for w in (self.approve_btn, self.restart_btn, self.revoke_btn):
-            w.setEnabled(value)
+        # Живое обновление: аддон в реальном времени пишет свои события в
+        # activity.json (см. addons/system_monitor/core/monitor.py), а этот
+        # таймер сам, без участия пользователя, раз в секунду перечитывает
+        # файл и подтягивает новые записи в текстовое поле.
+        self._refresh_timer = QTimer(self)
+        self._refresh_timer.timeout.connect(self._refresh)
+        self._refresh_timer.start(self.REFRESH_INTERVAL_MS)
 
     def show_empty(self):
         self.current_addon = None
-        self.big_name.setText("—")
-        self.status_desc.setText(tr("control_center.select_addon_hint"))
-        self._set_status_pill(None)
-        self.log_list.clear()
-        self._set_enabled(False)
-
-    def _set_status_pill(self, enabled):
-        """Переключает индикатор активности через динамическое свойство
-        state="on"/"off" (тот же приём, что и favorite=true у GameCard
-        в GorLauncher), чтобы цвет брался из style.qss, а не из кода."""
-        if enabled is None:
-            self.status_pill.setText(tr("control_center.status_unknown"))
-            self.status_pill.setProperty("state", "")
-        elif enabled:
-            self.status_pill.setText(tr("control_center.status_active"))
-            self.status_pill.setProperty("state", "on")
-        else:
-            self.status_pill.setText(tr("control_center.status_inactive"))
-            self.status_pill.setProperty("state", "off")
-        # переприменяем стиль после смены динамического свойства
-        self.status_pill.style().unpolish(self.status_pill)
-        self.status_pill.style().polish(self.status_pill)
+        self._last_text = None
+        self.log_text.clear()
 
     def update_for_addon(self, addon_info):
         """addon_info: dict с ключами name, path, enabled, config"""
         self.current_addon = addon_info["path"]
-        self.big_name.setText(addon_info["name"])
-        self._set_status_pill(addon_info["enabled"])
+        self._last_text = None  # форсируем немедленную перерисовку
+        self._refresh()
 
-        config = addon_info.get("config", {})
-        desc = config.get("description") or tr("control_center.no_description")
-        version = config.get("version", "—")
-        self.status_desc.setText(tr("control_center.desc_version", desc=desc, version=version))
+    def _refresh(self):
+        """Вызывается и сразу при выборе аддона, и каждую секунду таймером -
+        подтягивает актуальное содержимое activity.json в текстовое поле."""
+        if not self.current_addon:
+            return
 
-        self.log_list.clear()
-        entries = self._load_activity(addon_info["path"])
+        entries = self._load_activity(self.current_addon)
+        icons = {"request": "📨", "change": "✏️", "info": "ℹ️", "error": "⚠️"}
+
         if not entries:
-            self.log_list.addItem(QListWidgetItem(tr("control_center.no_activity")))
+            text = tr("control_center.no_activity")
         else:
-            icons = {"request": "📨", "change": "✏️", "info": "ℹ️", "error": "⚠️"}
+            lines = []
             for entry in entries:
                 icon = icons.get(entry.get("type", "info"), "•")
-                text = f"{icon}  [{entry.get('time', '--:--')}]  {entry.get('message', '')}"
-                self.log_list.addItem(QListWidgetItem(text))
+                lines.append(f"{icon}  [{entry.get('time', '--:--')}]  {entry.get('message', '')}")
+            text = "\n".join(lines)
 
-        self._set_enabled(True)
+        if text == self._last_text:
+            return  # ничего нового - не перерисовываем и не сбиваем прокрутку/выделение
+        self._last_text = text
+        self.log_text.setPlainText(text)
 
     def _load_activity(self, addon_path):
-        """Пытается прочитать activity.json внутри папки аддона.
-        Если файла нет — возвращает несколько демонстрационных записей,
-        чтобы UI можно было проверить сразу без реальных логов."""
+        """Читает activity.json внутри папки аддона - это ЕДИНСТВЕННЫЙ
+        источник записей лога. Файл пишет сам аддон в рантайме (см.
+        addons/system_monitor/core/monitor.py как пример) - здесь ничего
+        не выдумывается и не подставляется, если аддон ничего не писал -
+        лог просто пуст."""
         activity_file = os.path.join(addon_path, "activity.json")
-        if os.path.exists(activity_file):
-            try:
-                with open(activity_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception:
-                pass
-
-        # Демонстрационные записи (fallback), если реального лога нет
-        sample_actions = [
-            ("request", tr("control_center.sample_request")),
-            ("change", tr("control_center.sample_change")),
-            ("info", tr("control_center.sample_info")),
-            ("error", tr("control_center.sample_error")),
-        ]
-        now = datetime.now()
-        return [
-            {"type": t, "message": m, "time": now.strftime("%H:%M")}
-            for t, m in random.sample(sample_actions, k=min(3, len(sample_actions)))
-        ]
+        if not os.path.exists(activity_file):
+            return []
+        try:
+            with open(activity_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return []
 
 
 # ----------------------------------------------------------------------
@@ -376,8 +285,8 @@ class ControlCenter(QDialog):
         self.web_view.setHtml(EMPTY_PAGE)
         self.tabs.addTab(self.web_view, tr("control_center.tab_view"))
 
-        # Вкладка 2: мониторинг аддона
-        self.monitoring_tab = MonitoringTab(on_action=self.handle_monitor_action)
+        # Вкладка 2: мониторинг аддона (простое текстовое поле с логом)
+        self.monitoring_tab = MonitoringTab()
         self.tabs.addTab(self.monitoring_tab, tr("control_center.tab_monitoring"))
 
         splitter.addWidget(self.addon_list)
@@ -519,42 +428,6 @@ class ControlCenter(QDialog):
                 json.dump(data, f, indent=4, ensure_ascii=False)
         except Exception as e:
             QMessageBox.warning(self, tr("control_center.save_error_title"), str(e))
-
-    # ------------------------------------------------------------------
-    # Обработка кнопок на карточке "Управление аддоном"
-    # ------------------------------------------------------------------
-    def handle_monitor_action(self, addon_path, action_name):
-        info = self.addons_by_path.get(addon_path)
-        if not info:
-            return
-
-        if action_name == "approve":
-            QMessageBox.information(self, tr("control_center.approve_done_title"), tr("control_center.approve_done_text", name=info['name']))
-        elif action_name == "restart":
-            QMessageBox.information(self, tr("control_center.restart_title"), tr("control_center.restart_text", name=info['name']))
-        elif action_name == "revoke":
-            reply = QMessageBox.question(
-                self, tr("control_center.revoke_confirm_title"),
-                tr("control_center.revoke_confirm_text", name=info['name']),
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                info["enabled"] = False
-                self._save_active_addons()
-                self.monitoring_tab.update_for_addon(info)
-                self._refresh_row_checkbox(addon_path, False)
-
-    def _refresh_row_checkbox(self, addon_path, enabled):
-        """Обновляет чекбокс в списке слева, когда аддон отключается через
-        кнопку на вкладке мониторинга (сам чекбокс теперь рисуется
-        делегатом, так что просто обновляем данные и просим перерисовать)."""
-        for i in range(self.addon_list.count()):
-            item = self.addon_list.item(i)
-            if item.data(Qt.ItemDataRole.UserRole) == addon_path:
-                item.setData(ROLE_ENABLED, enabled)
-                break
-        self.addon_list.viewport().update()
-
 
 if __name__ == "__main__":
     # Корректная политика масштабирования при дробном DPI (125%/150% в Windows) -
