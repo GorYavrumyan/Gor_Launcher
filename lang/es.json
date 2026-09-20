@@ -26,6 +26,7 @@
         "tab_library": "📚 BIBLIOTECA",
         "tab_favorites": "⭐️ FAVORITOS",
         "tab_history": "📜 HISTORIAL",
+        "tab_browser": "🌐 NAVEGADOR",
         "add_game_btn": "➕ AÑADIR JUEGO",
         "add_group_btn": "📁 NUEVO GRUPO",
         "clear_history_btn": "🗑️ BORRAR HISTORIAL",
@@ -46,7 +47,19 @@
         "sort_name_desc": "Nombre (Z-A)",
         "sort_playtime_desc": "Tiempo jugado (mayor → menor)",
         "sort_playtime_asc": "Tiempo jugado (menor → mayor)",
-        "sort_newest": "Primero los nuevos"
+        "sort_newest": "Primero los nuevos",
+        "tab_menu_expand_window": "🗖 Ampliar pestaña a toda la ventana",
+        "tab_menu_fullscreen": "⛶ Pantalla completa",
+        "tab_menu_detach": "🗗 Abrir en una ventana aparte",
+        "tab_menu_restore": "↩ Vista normal",
+        "detached_return_btn": "↩ Volver a GOR Launcher",
+        "detached_window_title": "{title} — GOR Launcher",
+        "tray_open": "🗖 Abrir GOR Launcher",
+        "tray_quit": "❌ Salir",
+        "tray_title": "GOR Launcher",
+        "tray_hidden_text": "El launcher está minimizado en la bandeja mientras un juego está en ejecución. Haz clic en el icono para volver a abrirlo.",
+        "tray_minimize_tooltip": "Minimizar a la bandeja",
+        "menu_moonlight": "🌙 MOONLIGHT"
     },
     "game_card": {
         "run": "INICIAR",
@@ -82,6 +95,10 @@
         "title": "Error",
         "text": "No se pudo iniciar Sunshine Control:\n{error}"
     },
+    "moonlight_error": {
+        "title": "Error",
+        "text": "No se pudo iniciar Moonlight Control:\n{error}"
+    },
     "exporter_error": {
         "title": "Error",
         "text": "No se pudo iniciar Exporter:\n{error}"
@@ -96,6 +113,14 @@
         "args_placeholder": "-game folder_name",
         "icon_label": "Portada (PNG/JPG):",
         "icon_btn": "🖼️ Foto",
+        "icon_browser_btn": "🌐 Buscar en el navegador",
+        "picker_title": "Elegir portada desde el navegador",
+        "picker_hint": "Busca una imagen adecuada como quieras (buscador, sitio del juego, etc.), haz clic derecho sobre ella y elige «Usar como portada del juego».",
+        "picker_switch_hint": "🌐 Se abrió una pestaña «🖼️ Portada» en la ventana principal del launcher (pestaña Navegador) — cambia allí, busca una imagen y haz clic derecho sobre ella.",
+        "picker_go": "Ir",
+        "picker_use_as_cover": "🖼️ Usar como portada del juego",
+        "picker_downloading": "Descargando imagen…",
+        "picker_download_error": "No se pudo descargar la imagen: {error}",
         "no_photo": "Sin foto",
         "file_not_found": "Archivo no encontrado",
         "favorite_check": "⭐️ AÑADIR A FAVORITOS",

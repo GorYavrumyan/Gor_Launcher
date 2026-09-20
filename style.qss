@@ -357,14 +357,14 @@ QLabel#AppTitle {
 }
 QLabel#StatsLabel {
     color: #888;
-    font-size: 14px;
+    font-size: 13px;
     background: #111;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 6px 10px;
+    border-radius: 8px;
 }
 QLineEdit#SearchBar {
-    border-radius: 15px;
-    padding: 8px 20px;
+    border-radius: 12px;
+    padding: 5px 16px;
 }
 QLineEdit#SearchBar:focus {
     border: 1px solid #ffcc00;
@@ -489,27 +489,30 @@ QLabel#GroupTitleLabel[favorite="true"] {
     color: #ffcc00;
 }
 
-/* Компактные квадратные кнопки управления в шапке (Перезапуск и Гамбургер-меню) */
+/* Компактные квадратные кнопки управления в шапке (Перезапуск, Трей и Гамбургер-меню) */
 QPushButton#RestartBtn,
+QPushButton#TrayBtn,
 QPushButton#BurgerMenuBtn {
     padding: 0px;
     font-family: 'Segoe UI Emoji', 'Segoe UI Symbol', 'Segoe UI', sans-serif;
-    font-size: 16px;
+    font-size: 14px;
     color: #ffffff;
     background-color: #1a1a1a;
     border: 1px solid #333;
-    border-radius: 8px;
-    min-height: 38px;
-    max-height: 38px;
-    min-width: 38px;
-    max-width: 38px;
+    border-radius: 7px;
+    min-height: 30px;
+    max-height: 30px;
+    min-width: 30px;
+    max-width: 30px;
 }
 QPushButton#RestartBtn:hover,
+QPushButton#TrayBtn:hover,
 QPushButton#BurgerMenuBtn:hover {
     background-color: #007acc;
     border: 1px solid #005f9e;
 }
 QPushButton#RestartBtn:pressed,
+QPushButton#TrayBtn:pressed,
 QPushButton#BurgerMenuBtn:pressed {
     background-color: #005f9e;
 }

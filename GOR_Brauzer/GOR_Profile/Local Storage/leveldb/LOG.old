@@ -1,0 +1,6 @@
+2026/09/19-12:49:14.920 4050 Reusing MANIFEST F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\Local Storage\leveldb/MANIFEST-000001
+2026/09/19-12:49:14.954 4050 Recovering log #7
+2026/09/19-12:49:15.229 4050 Reusing old log F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\Local Storage\leveldb/000007.log 
+2026/09/19-12:50:09.037 4050 Level-0 table #11: started
+2026/09/19-12:50:09.113 4050 Level-0 table #11: 12381 bytes OK
+2026/09/19-12:50:09.175 4050 Delete type=0 #7

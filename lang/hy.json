@@ -26,6 +26,7 @@
         "tab_library": "📚 ԳՐԱԴԱՐԱՆ",
         "tab_favorites": "⭐️ ՍԻՐԵԼԻՆԵՐ",
         "tab_history": "📜 ՊԱՏՄՈՒԹՅՈՒՆ",
+        "tab_browser": "🌐 ԶՆՆԱՐԿԻՉ",
         "add_game_btn": "➕ ԱՎԵԼԱՑՆԵԼ ԽԱՂ",
         "add_group_btn": "📁 ՆՈՐ ԽՈՒՄԲ",
         "clear_history_btn": "🗑️ ՄԱՔՐԵԼ ՊԱՏՄՈՒԹՅՈՒՆԸ",
@@ -46,7 +47,19 @@
         "sort_name_desc": "Անուն (Ֆ-Ա)",
         "sort_playtime_desc": "Խաղացած ժամանակ (շատ → քիչ)",
         "sort_playtime_asc": "Խաղացած ժամանակ (քիչ → շատ)",
-        "sort_newest": "Նախ՝ նոր ավելացվածները"
+        "sort_newest": "Նախ՝ նոր ավելացվածները",
+        "tab_menu_expand_window": "🗖 Ընդարձակել ներդիրը ողջ պատուհանով",
+        "tab_menu_fullscreen": "⛶ Լիաէկրան",
+        "tab_menu_detach": "🗗 Բացել առանձին պատուհանում",
+        "tab_menu_restore": "↩ Սովորական տեսք",
+        "detached_return_btn": "↩ Վերադառնալ GOR Launcher",
+        "detached_window_title": "{title} — GOR Launcher",
+        "tray_open": "🗖 Բացել GOR Launcher-ը",
+        "tray_quit": "❌ Ելք",
+        "tray_title": "GOR Launcher",
+        "tray_hidden_text": "Launcher-ը փոքրացված է tray-ում, քանի դեռ խաղը աշխատում է: Սեղմեք պատկերակի վրա՝ վերադարձնելու համար։",
+        "tray_minimize_tooltip": "Ծալել tray-ում",
+        "menu_moonlight": "🌙 MOONLIGHT"
     },
     "game_card": {
         "run": "ԳՈՐԾԱՐԿԵԼ",
@@ -82,6 +95,10 @@
         "title": "Սխալ",
         "text": "Չհաջողվեց գործարկել Sunshine Control-ը.\n{error}"
     },
+    "moonlight_error": {
+        "title": "Սխալ",
+        "text": "Չհաջողվեց գործարկել Moonlight Control-ը:\n{error}"
+    },
     "exporter_error": {
         "title": "Սխալ",
         "text": "Չհաջողվեց գործարկել Exporter-ը.\n{error}"
@@ -96,6 +113,14 @@
         "args_placeholder": "-game folder_name",
         "icon_label": "Շապիկ (PNG/JPG).",
         "icon_btn": "🖼️ Նկար",
+        "icon_browser_btn": "🌐 Փնտրել բրաուզերում",
+        "picker_title": "Ընտրել շապիկ բրաուզերից",
+        "picker_hint": "Գտիր հարմար նկար ցանկացած ձևով (որոնում, խաղի կայք և այլն), սեղմիր դրա վրա աջ կոճակով և ընտրիր «Օգտագործել որպես խաղի շապիկ»։",
+        "picker_switch_hint": "🌐 Հիմնական պատուհանում («Բրաուզեր» ներդիրում) բացվել է «🖼️ Շապիկ» սպասարկող ներդիրը — անցիր այնտեղ, գտիր նկարը և սեղմիր դրա վրա աջ կոճակով։",
+        "picker_go": "Անցնել",
+        "picker_use_as_cover": "🖼️ Օգտագործել որպես խաղի շապիկ",
+        "picker_downloading": "Նկարի ներբեռնում…",
+        "picker_download_error": "Չհաջողվեց ներբեռնել նկարը: {error}",
         "no_photo": "Նկար չկա",
         "file_not_found": "Ֆայլը չի գտնվել",
         "favorite_check": "⭐️ ԱՎԵԼԱՑՆԵԼ ՍԻՐԵԼԻՆԵՐՈՒՄ",

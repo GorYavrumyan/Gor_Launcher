@@ -1,0 +1,15 @@
+2026/09/19-12:56:42.316 4050 Reusing MANIFEST F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\IndexedDB\https_www.youtube.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/09/19-12:56:42.317 4050 Recovering log #55
+2026/09/19-12:56:42.405 4050 Reusing old log F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\IndexedDB\https_www.youtube.com_0.indexeddb.leveldb/000055.log 
+2026/09/19-14:01:17.293 4050 Level-0 table #60: started
+2026/09/19-14:01:17.428 4050 Level-0 table #60: 679341 bytes OK
+2026/09/19-14:01:17.473 4050 Delete type=0 #55
+2026/09/19-14:01:17.474 4050 Manual compaction at level-0 from (begin) .. (end); will stop at (end)
+2026/09/19-14:01:17.474 4050 Manual compaction at level-1 from (begin) .. (end); will stop at '\x00\x16\x01 \x03\x00\x00\x00\x00\x00\x00\xf0?\x00\x04\x02\x01\x17\x00s\x00e\x00r\x00v\x00i\x00c\x00e\x00:\x00t\x00o\x00p\x00b\x00a\x00r\x00:\x00f\x00a\x00l\x00l\x00b\x00a\x00c\x00k\x03\x00\x00\x00\x00\x00\x00\xf0?' @ 31587 : 1
+2026/09/19-14:01:17.475 4050 Compacting 1@1 + 1@2 files
+2026/09/19-14:01:17.534 4050 Generated table #61@1: 345 keys, 76772 bytes
+2026/09/19-14:01:17.534 4050 Compacted 1@1 + 1@2 files => 76772 bytes
+2026/09/19-14:01:17.566 4050 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/09/19-14:01:17.566 4050 Delete type=2 #57
+2026/09/19-14:01:17.566 4050 Delete type=2 #60
+2026/09/19-14:01:17.578 4050 Manual compaction at level-1 from '\x00\x16\x01 \x03\x00\x00\x00\x00\x00\x00\xf0?\x00\x04\x02\x01\x17\x00s\x00e\x00r\x00v\x00i\x00c\x00e\x00:\x00t\x00o\x00p\x00b\x00a\x00r\x00:\x00f\x00a\x00l\x00l\x00b\x00a\x00c\x00k\x03\x00\x00\x00\x00\x00\x00\xf0?' @ 31587 : 1 .. (end); will stop at (end)

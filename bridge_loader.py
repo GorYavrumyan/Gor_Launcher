@@ -2,7 +2,7 @@ import os
 import sys
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = _THIS_DIR if os.path.exists(os.path.join(_THIS_DIR, "bridge_loader.py")) else os.path.dirname(_THIS_DIR)
-for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
+for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras", "GOR_Brauzer"):
     _p = os.path.join(_PROJECT_ROOT, _sub)
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -166,12 +166,16 @@ def restart_launcher(confirm=True):
     sys.exit(0)
 
 
-def run_control_center():
+def run_control_center(launcher=None):
     base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
     script_path = os.path.join(base_path, "addons_sys", "ControlCenter.py")
-    
+
     if os.path.exists(script_path):
-        subprocess.Popen([sys.executable, script_path])
+        proc = subprocess.Popen([sys.executable, script_path])
+        # Регистрируем процесс в лаунчере, чтобы Control Center закрывался/
+        # завершался вместе с главным окном (закрытие или перезапуск).
+        if launcher is not None and hasattr(launcher, "_track_process"):
+            launcher._track_process(proc)
 
 def _read_stored_addons_list(base_dir):
     """Читает поле 'addons_list' напрямую из games_data.json на диске.
@@ -292,8 +296,8 @@ def load_addons(launcher):
     if control_center_found:
         btn = QPushButton(tr("launcher.addon_manager_btn"))
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.clicked.connect(run_control_center)
-        header_lay = launcher.main_lay.itemAt(0).layout()
+        btn.clicked.connect(lambda: run_control_center(launcher))
+        header_lay = launcher.header_bar.layout() if hasattr(launcher, "header_bar") else launcher.main_lay.itemAt(0).layout()
         
         # Размещаем кнопку возле кнопки перезапуска и бургер-меню справа
         restart_btn = launcher.findChild(QPushButton, "RestartBtn")
@@ -314,12 +318,32 @@ def add_restart_button(launcher):
     btn.setFixedSize(38, 38)
     btn.clicked.connect(lambda: restart_launcher(confirm=True))
     
-    header_lay = launcher.main_lay.itemAt(0).layout()
+    header_lay = launcher.header_bar.layout() if hasattr(launcher, "header_bar") else launcher.main_lay.itemAt(0).layout()
     burger_idx = header_lay.indexOf(launcher.burger_btn)
     if burger_idx != -1:
         header_lay.insertWidget(burger_idx, btn)
     else:
         header_lay.addWidget(btn)
+
+
+def add_tray_button(launcher):
+    """Переставляет уже созданную кнопку 'В трей' (GORLauncher.tray_btn)
+    вплотную к остальным маленьким квадратным кнопкам в шапке (Restart,
+    Burger) - то есть после ADDON MANAGER / кнопки обновления / Restart,
+    но перед бургер-меню. Вызывать ПОСЛЕ add_restart_button(launcher)."""
+    if not hasattr(launcher, "tray_btn"):
+        return
+
+    header_lay = launcher.header_bar.layout() if hasattr(launcher, "header_bar") else launcher.main_lay.itemAt(0).layout()
+    if header_lay is None:
+        return
+
+    header_lay.removeWidget(launcher.tray_btn)
+    burger_idx = header_lay.indexOf(launcher.burger_btn)
+    if burger_idx != -1:
+        header_lay.insertWidget(burger_idx, launcher.tray_btn)
+    else:
+        header_lay.addWidget(launcher.tray_btn)
 
 
 def update_widget_style_property(widget, prop_name, prop_value):
@@ -364,7 +388,7 @@ def show_update_available_button(launcher, remote_version):
     btn = QPushButton(tr("launcher.update_available_btn", version=remote_version))
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.clicked.connect(open_updater)
-    header_lay = launcher.main_lay.itemAt(0).layout()
+    header_lay = launcher.header_bar.layout() if hasattr(launcher, "header_bar") else launcher.main_lay.itemAt(0).layout()
     
     # Размещаем кнопку обновления левее кнопки ADDON MANAGER или перезапуска
     restart_btn = launcher.findChild(QPushButton, "RestartBtn")
@@ -377,11 +401,20 @@ def show_update_available_button(launcher, remote_version):
 
 
 if __name__ == "__main__":
+    # Пункт 5 ТЗ (оптимизация скорости загрузки страниц) - аппаратное
+    # ускорение рендеринга Chromium. Флаги нужно добавить в sys.argv ДО
+    # создания QApplication - PyQt6-WebEngine читает их при инициализации
+    # движка, позже это уже не подействует.
+    sys.argv.append('--enable-gpu-rasterization')
+    sys.argv.append('--enable-zero-copy')
+    sys.argv.append('--ignore-gpu-blocklist')
+
     app = QApplication(sys.argv)
     apply_global_style(app)
     launcher = GORLauncher()
     load_addons(launcher)
     add_restart_button(launcher)
+    add_tray_button(launcher)
     launcher.show()
     check_updates_in_background(launcher)
     sys.exit(app.exec())

@@ -1,0 +1,11 @@
+{
+    "theme_color": "#4c6ef5",
+    "top_bar_color": "#16171a",
+    "font_family": "Segoe UI",
+    "search_engine": "DuckDuckGo",
+    "show_clock": true,
+    "show_title": true,
+    "show_todo": true,
+    "ui_opacity": 0.9,
+    "bg_image": ""
+}

@@ -11,14 +11,154 @@ import sys
 import os
 import json
 import uuid
+import base64
 from PyQt6.QtWidgets import (QApplication, QDialog, QVBoxLayout, QLineEdit, 
                              QPushButton, QHBoxLayout, QLabel, QFileDialog, 
                              QCheckBox, QComboBox, QMessageBox)
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QPixmap, QIcon
+from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineContextMenuRequest
+from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QLocalSocket
 
 from style_loader import apply_global_style
 from lang_loader import tr
+from cover_ipc import IPC_SERVER_NAME, encode_message, try_decode_line
+
+# Папка, куда сохраняются обложки, "пойманные" из встроенного браузера
+# (см. ImagePickerDialog ниже). Лежит рядом с games_data.json, как и сами
+# исходные обложки, добавленные вручную через "Обзор".
+COVERS_DIR = "covers"
+
+
+class _PickerView(QWebEngineView):
+    """WebView в режиме выбора обложки.
+
+    ВАЖНО: обычные клики по картинкам НЕ перехватываются - страница ведёт
+    себя как в любом другом браузере (можно открыть картинку по ссылке,
+    перейти дальше и т.п.). Выбор обложки происходит только через ПРАВЫЙ
+    клик: в стандартное контекстное меню Chromium (со всеми его обычными
+    пунктами - "Сохранить картинку как", "Копировать" и т.д.) добавляется
+    один дополнительный пункт "Использовать как обложку игры", который
+    появляется, только если клик пришёлся именно на <img>."""
+
+    def __init__(self, on_image_picked, parent=None):
+        super().__init__(parent)
+        self._on_image_picked = on_image_picked
+
+    def contextMenuEvent(self, event):
+        request = self.lastContextMenuRequest()
+        menu = self.createStandardContextMenu()
+
+        if (request.mediaType() == QWebEngineContextMenuRequest.MediaType.MediaTypeImage
+                and not request.mediaUrl().isEmpty()):
+            media_url = request.mediaUrl().toString()
+            menu.addSeparator()
+            cover_act = menu.addAction(tr("game_editor.picker_use_as_cover"))
+            cover_act.triggered.connect(lambda: self._on_image_picked(media_url))
+
+        menu.exec(event.globalPos())
+
+
+class ImagePickerDialog(QDialog):
+    """Встроенный браузер в 'режиме выбора обложки': пользователь ищет
+    картинку как обычно (поиск, любой сайт), а клик по любому изображению
+    на странице сразу скачивает его и закрывает диалог с готовым путём
+    к файлу - без ручного сохранения на диск и открытия проводника."""
+
+    def __init__(self, parent=None, initial_query=""):
+        super().__init__(parent)
+        self.setWindowTitle(tr("game_editor.picker_title"))
+        self.resize(1000, 720)
+        self.picked_path = None
+        self._network = QNetworkAccessManager(self)
+
+        layout = QVBoxLayout(self)
+
+        hint = QLabel(tr("game_editor.picker_hint"))
+        hint.setWordWrap(True)
+        layout.addWidget(hint)
+
+        nav_layout = QHBoxLayout()
+        self.url_edit = QLineEdit()
+        self.go_btn = QPushButton(tr("game_editor.picker_go"))
+        self.go_btn.clicked.connect(self._navigate)
+        self.url_edit.returnPressed.connect(self._navigate)
+        nav_layout.addWidget(self.url_edit)
+        nav_layout.addWidget(self.go_btn)
+        layout.addLayout(nav_layout)
+
+        self.view = _PickerView(self._on_image_picked)
+        layout.addWidget(self.view)
+
+        self.status_lbl = QLabel("")
+        layout.addWidget(self.status_lbl)
+
+        start_query = initial_query.strip() or "обложка игры"
+        self.url_edit.setText(f"https://www.google.com/search?tbm=isch&q={start_query}")
+        self._navigate()
+
+    def _navigate(self):
+        text = self.url_edit.text().strip()
+        if not text:
+            return
+        if "://" not in text:
+            text = f"https://www.google.com/search?tbm=isch&q={text}"
+        self.view.setUrl(QUrl(text))
+
+    def _on_image_picked(self, img_url):
+        self.status_lbl.setText(tr("game_editor.picker_downloading"))
+        self.go_btn.setEnabled(False)
+
+        if img_url.startswith("data:"):
+            # Превью в поиске картинок иногда сразу приходят как data:URL -
+            # тогда сеть не нужна, декодируем base64 напрямую.
+            try:
+                header, b64data = img_url.split(",", 1)
+                ext = "png"
+                if "image/jpeg" in header or "image/jpg" in header:
+                    ext = "jpg"
+                elif "image/webp" in header:
+                    ext = "webp"
+                raw = base64.b64decode(b64data)
+                self._save_and_close(raw, ext)
+            except Exception as e:
+                self._fail(str(e))
+            return
+
+        qurl = QUrl(img_url)
+        req = QNetworkRequest(qurl)
+        reply = self._network.get(req)
+        reply.finished.connect(lambda: self._on_download_finished(reply, qurl))
+
+    def _on_download_finished(self, reply, qurl):
+        from PyQt6.QtNetwork import QNetworkReply
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            self._fail(reply.errorString())
+            reply.deleteLater()
+            return
+        raw = bytes(reply.readAll())
+        reply.deleteLater()
+        ext = os.path.splitext(qurl.path())[1].lstrip(".").split("?")[0][:4] or "jpg"
+        if ext.lower() not in ("jpg", "jpeg", "png", "webp", "gif", "bmp"):
+            ext = "jpg"
+        self._save_and_close(raw, ext)
+
+    def _save_and_close(self, raw_bytes, ext):
+        try:
+            os.makedirs(COVERS_DIR, exist_ok=True)
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            full_path = os.path.join(COVERS_DIR, filename)
+            with open(full_path, "wb") as f:
+                f.write(raw_bytes)
+            self.picked_path = full_path
+            self.accept()
+        except Exception as e:
+            self._fail(str(e))
+
+    def _fail(self, message):
+        self.status_lbl.setText(tr("game_editor.picker_download_error", error=message))
+        self.go_btn.setEnabled(True)
 
 NO_GROUP_KEY = "Без группы"  # внутренний ключ данных - НЕ переводится
 
@@ -29,6 +169,7 @@ class GameEditor(QDialog):
         self.setWindowTitle(tr("game_editor.title"))
         self.setObjectName("EditorDialog")
         self.setFixedWidth(600)
+        self._cover_ipc_socket = None   # см. select_icon_from_browser()
         
         # Загружаем структуру данных
         self.all_data = self.load_json()
@@ -113,9 +254,18 @@ class GameEditor(QDialog):
         self.icon_edit = QLineEdit(self.game_data.get('icon', ''))
         self.icon_btn = QPushButton(tr("game_editor.icon_btn"))
         self.icon_btn.clicked.connect(self.select_icon)
+        self.icon_browser_btn = QPushButton(tr("game_editor.icon_browser_btn"))
+        self.icon_browser_btn.clicked.connect(self.select_icon_from_browser)
         icon_layout.addWidget(self.icon_edit)
         icon_layout.addWidget(self.icon_btn)
+        icon_layout.addWidget(self.icon_browser_btn)
         layout.addLayout(icon_layout)
+
+        self.icon_ipc_status_lbl = QLabel("")
+        self.icon_ipc_status_lbl.setObjectName("IconIpcStatusLabel")
+        self.icon_ipc_status_lbl.setWordWrap(True)
+        self.icon_ipc_status_lbl.hide()
+        layout.addWidget(self.icon_ipc_status_lbl)
 
         preview_box = QHBoxLayout()
         self.preview_label = QLabel(tr("game_editor.no_photo"))
@@ -227,6 +377,76 @@ class GameEditor(QDialog):
         file, _ = QFileDialog.getOpenFileName(self, tr("game_editor.select_cover"), "", tr("common.images_filter"))
         if file: 
             self.icon_edit.setText(file)
+            self.update_preview()
+
+    def closeEvent(self, event):
+        # Если редактор закрывают, пока висит незавершённый запрос "выбор
+        # обложки" - обрываем соединение. Сервер (главный лаунчер) увидит
+        # disconnected и сам закроет служебную вкладку браузера.
+        self._cleanup_cover_ipc_socket()
+        super().closeEvent(event)
+
+    def select_icon_from_browser(self):
+        """Просит ГЛАВНЫЙ процесс лаунчера (если он запущен) переключиться
+        на вкладку "Браузер" и открыть там служебную вкладку выбора
+        обложки - см. shared/cover_ipc.py. Если лаунчер почему-то
+        недоступен (например, редактор запущен отдельно для отладки) -
+        тихо откатываемся на старое отдельное окно ImagePickerDialog."""
+        self._cover_ipc_buffer = b""
+        socket = QLocalSocket(self)
+        self._cover_ipc_socket = socket
+
+        def _on_connected():
+            query = self.name_edit.text().strip() or "обложка игры"
+            socket.write(encode_message({"cmd": "pick_cover", "query": query}))
+            socket.flush()
+            self.icon_ipc_status_lbl.setText(tr("game_editor.picker_switch_hint"))
+            self.icon_ipc_status_lbl.show()
+
+        def _on_ready_read():
+            self._cover_ipc_buffer += bytes(socket.readAll())
+            while True:
+                msg, rest = try_decode_line(self._cover_ipc_buffer)
+                self._cover_ipc_buffer = rest
+                if msg is None:
+                    break
+                self._on_cover_ipc_message(msg)
+
+        def _on_error(_err=None):
+            self._cleanup_cover_ipc_socket()
+            self._open_legacy_image_picker()
+
+        socket.connected.connect(_on_connected)
+        socket.readyRead.connect(_on_ready_read)
+        socket.errorOccurred.connect(_on_error)
+        socket.connectToServer(IPC_SERVER_NAME)
+
+    def _on_cover_ipc_message(self, msg):
+        if "cover_path" in msg:
+            self.icon_edit.setText(msg["cover_path"])
+            self.update_preview()
+            self.icon_ipc_status_lbl.hide()
+            self._cleanup_cover_ipc_socket()
+            self.raise_()
+            self.activateWindow()
+        elif "error" in msg:
+            self.icon_ipc_status_lbl.hide()
+            self._cleanup_cover_ipc_socket()
+            QMessageBox.warning(self, tr("common.error"), tr("game_editor.picker_download_error", error=msg["error"]))
+
+    def _cleanup_cover_ipc_socket(self):
+        if self._cover_ipc_socket is not None:
+            self._cover_ipc_socket.disconnectFromServer()
+            self._cover_ipc_socket.deleteLater()
+            self._cover_ipc_socket = None
+
+    def _open_legacy_image_picker(self):
+        """Запасной вариант, если главный лаунчер недоступен по IPC:
+        собственное отдельное окно браузера, как раньше."""
+        self.icon_ipc_status_lbl.hide()
+        dialog = ImagePickerDialog(self, initial_query=self.name_edit.text())
+        if dialog.exec() and dialog.picked_path:
+            self.icon_edit.setText(dialog.picked_path)
             self.update_preview()
 
     def update_preview(self):

@@ -1,0 +1,4 @@
+2026/09/19-08:28:53.592 4464 Log #3: 3 ops saved to Table #4 OK
+2026/09/19-08:28:54.603 4464 Archiving F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\File System\Origins/000003.log: IO error: F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\File System\Origins/000003.log: Could not rename file: File currently in use. (ChromeMethodBFE: 14::RenameFile::2)
+2026/09/19-08:28:54.603 4464 Table #4: 3 entries OK
+2026/09/19-08:28:55.611 4464 Archiving F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\File System\Origins/MANIFEST-000001: IO error: F:\Projects\__PYTHON__\_PROJECTS_\Launcher\GOR_Brauzer\GOR_Profile\File System\Origins/MANIFEST-000001: Could not rename file: File currently in use. (ChromeMethodBFE: 14::RenameFile::2)

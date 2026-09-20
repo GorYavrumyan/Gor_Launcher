@@ -20,7 +20,7 @@ import time
 import platform
 import shlex
 
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMenu, QMessageBox, QApplication
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMenu, QMessageBox, QApplication, QInputDialog
 from PyQt6.QtCore import Qt, QMimeData, QTimer
 from PyQt6.QtGui import QDrag, QAction
 
@@ -172,10 +172,58 @@ class GameCard(QFrame):
             d_act.triggered.connect(lambda: self.parent_launcher.delete_game_confirm(self.game_data, self.group_name))
             menu.addAction(d_act)
             menu.addSeparator()
+            guide_act = QAction("📚 Гайды по игре (авто-группа браузера)...", self)
+            guide_act.triggered.connect(self.pick_guide_group)
+            menu.addAction(guide_act)
+            menu.addSeparator()
         copy_act = QAction(tr("game_card.copy_path"), self)
         copy_act.triggered.connect(self.copy_path_to_clipboard)
         menu.addAction(copy_act)
         menu.exec(self.mapToGlobal(pos))
+
+    def pick_guide_group(self):
+        """Привязывает эту игру к сохранённой группе вкладок браузера -
+        при следующем запуске игры лаунчер попросит браузер автоматически
+        открыть эту группу (см. GorLauncher.on_game_started /
+        GORBrowser.open_group_by_id). Список групп берём напрямую из
+        браузерной вкладки лаунчера - group_id/название хранятся там же,
+        где и остальные группы вкладок (games_data.json → browser.tab_groups)."""
+        browser_tab = getattr(self.parent_launcher, "browser_tab", None)
+        groups = list(getattr(browser_tab, "tab_groups", []) or [])
+        current_id = self.game_data.get("guide_group_id", "")
+
+        options = ["(не привязывать / убрать привязку)"]
+        ids = [""]
+        for g in groups:
+            emoji = (g.get("emoji") or "").strip() or "🗂️"
+            options.append(f"{emoji} {g.get('name', '?')}")
+            ids.append(g.get("id"))
+
+        if len(options) == 1:
+            QMessageBox.information(
+                self, "GOR Launcher",
+                "Пока нет ни одной сохранённой группы вкладок в браузере.\n"
+                "Откройте вкладки-гайды в браузере → «⋮» → «Сохранить текущую "
+                "сессию как группу», а затем вернитесь сюда."
+            )
+            return
+
+        try:
+            start_index = ids.index(current_id) if current_id in ids else 0
+        except ValueError:
+            start_index = 0
+
+        choice, ok = QInputDialog.getItem(
+            self, "Гайды по игре",
+            f"Группа вкладок браузера, которая будет открываться автоматически\n"
+            f"при запуске «{self.game_data.get('name', '?')}»:",
+            options, start_index, editable=False,
+        )
+        if not ok:
+            return
+        chosen_id = ids[options.index(choice)]
+        self.game_data["guide_group_id"] = chosen_id
+        self.parent_launcher.save_data()
 
     def copy_path_to_clipboard(self):
         QApplication.clipboard().setText(self.game_data.get('path', ''))
@@ -233,6 +281,7 @@ class GameCard(QFrame):
             gid = self.game_data.get('id') or self.game_data['name']
             if gid in self.parent_launcher.active_sessions:
                 del self.parent_launcher.active_sessions[gid]
+            self.parent_launcher.on_game_session_changed()
             return
 
         try: 
@@ -268,6 +317,9 @@ class GameCard(QFrame):
                     'start_time': start_t,
                     'card': self
                 }
+                if hasattr(self.parent_launcher, "on_game_started"):
+                    self.parent_launcher.on_game_started(self.game_data)
+                self.parent_launcher.on_game_session_changed()
             else:
                 universal_launch(path)
         except Exception as e: 
@@ -300,6 +352,7 @@ class GameCard(QFrame):
         gid = self.game_data.get('id') or self.game_data['name']
         if gid in self.parent_launcher.active_sessions:
             del self.parent_launcher.active_sessions[gid]
+        self.parent_launcher.on_game_session_changed()
 
         self.parent_launcher.finalize_history_session(duration, game_data)
 

@@ -1,14 +1,13 @@
 import os
 import sys
+
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_PROJECT_ROOT = _THIS_DIR if os.path.exists(os.path.join(_THIS_DIR, "bridge_loader.py")) else os.path.dirname(_THIS_DIR)
+_PROJECT_ROOT_GUESS = _THIS_DIR if os.path.exists(os.path.join(_THIS_DIR, "bridge_loader.py")) else os.path.dirname(_THIS_DIR)
 for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
-    _p = os.path.join(_PROJECT_ROOT, _sub)
+    _p = os.path.join(_PROJECT_ROOT_GUESS, _sub)
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-import os
-import sys
 import json
 
 from PyQt6.QtWidgets import (
@@ -23,6 +22,32 @@ from PyQt6.QtGui import QIcon, QPainter, QColor, QPen, QFont
 
 from style_loader import apply_global_style
 from lang_loader import tr
+
+
+def get_project_root():
+    """Находит корень проекта (там, где лежат games_data.json и addons/),
+    а НЕ папку, где физически лежит сам ControlCenter.py.
+
+    ControlCenter.py запускается bridge_loader'ом как отдельный процесс
+    из addons_sys/ (subprocess.Popen([sys.executable, "addons_sys/ControlCenter.py"])),
+    поэтому sys.argv[0] внутри ЭТОГО процесса указывает на addons_sys/,
+    а не на корень - раньше (пока файл лежал плоско в корне) это совпадало
+    случайно, после переноса в подпапку - перестало.
+
+    Пробуем по порядку: cwd процесса (bridge_loader запускает нас без
+    смены cwd, так что это корень проекта в подавляющем большинстве
+    случаев), папку sys.argv[0], и на крайний случай - на уровень выше
+    самого этого файла (addons_sys/.. = корень проекта)."""
+    candidates = [
+        os.getcwd(),
+        os.path.dirname(os.path.abspath(sys.argv[0])),
+        os.path.dirname(os.path.abspath(__file__)),
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    ]
+    for c in candidates:
+        if os.path.isdir(os.path.join(c, "addons")) or os.path.exists(os.path.join(c, "games_data.json")):
+            return c
+    return candidates[0]
 
 
 EMPTY_PAGE = """
@@ -303,7 +328,7 @@ class ControlCenter(QDialog):
     # Сканирование аддонов и наполнение списка строками с чекбоксами
     # ------------------------------------------------------------------
     def scan_addons(self):
-        base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+        base_path = get_project_root()
         addons_dir = os.path.join(base_path, "addons")
         data_path = os.path.join(base_path, "games_data.json")
 
@@ -408,7 +433,7 @@ class ControlCenter(QDialog):
 
     def _save_active_addons(self):
         """Синхронизирует список включённых аддонов обратно в games_data.json"""
-        base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+        base_path = get_project_root()
         data_path = os.path.join(base_path, "games_data.json")
 
         data = {"groups": {}, "standalone": [], "history": []}
@@ -439,7 +464,7 @@ if __name__ == "__main__":
         )
 
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
+    app.setWindowIcon(QIcon(os.path.join(get_project_root(), "favicon.ico")))
 
     # Fusion нужен, чтобы кастомный QSS для ::indicator у QCheckBox (тумблер
     # включения аддона) рисовался полностью средствами Qt, а не нативным

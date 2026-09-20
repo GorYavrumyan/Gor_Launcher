@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOR Dashboard OS</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <iframe id="html-bg-container"></iframe>
+    <div class="grid-bg"></div>
+
+    <div class="header">
+        <div class="brand-zone">
+            <!-- Кнопка "⚙ Настройки оформления" и модалка "bg-modal" убраны:
+                 система/цвет/фон/поиск теперь настраиваются в родном диалоге
+                 "Кастомизация" GOR Browser (Python, ⋮ -> Настройки браузера),
+                 см. GOR_Brauzer/browser_dialogs.py -->
+            <div class="brand" id="os-brand-logo">GOR // OS</div>
+            <button class="settings-btn" id="open-widgets-panel" title="Виджеты">🧩</button>
+        </div>
+        <div class="clock-container" id="clock-container">
+            <div id="clock">00:00:00</div>
+            <div id="date">Загрузка...</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <form id="search-form" action="https://www.google.com/search" method="get" class="search-box">
+            <span class="search-icon" id="search-icon-label">🔍</span>
+            <input type="text" id="search-input" placeholder="Поиск или URL..." autofocus autocomplete="off">
+        </form>
+
+        <!-- "Сейчас в игре" (пункт ТЗ) - скрыт, пока Python (GORBrowser)
+             не пришлёт данные через window.gorApplyNativeSettings({now_playing: ...}),
+             см. script.js → applyNowPlaying(). Пусто, если игр ещё не запускали. -->
+        <div id="now-playing-card" style="display:none;">
+            <img id="now-playing-icon" src="" alt="">
+            <div id="now-playing-info">
+                <div id="now-playing-label">СЕЙЧАС В ИГРЕ</div>
+                <div id="now-playing-name">—</div>
+            </div>
+            <div id="now-playing-links"></div>
+        </div>
+
+        <div class="shortcuts-grid" id="shortcuts-container"></div>
+    </div>
+
+    <div id="widgets-panel">
+        <div class="widgets-panel-header">
+            <button class="widgets-close" id="widget-settings-btn" title="Настройка виджетов">⚙</button>
+            <button class="widgets-close" id="widgets-close" title="Закрыть">✕</button>
+        </div>
+
+        <div class="widget-card" id="weather-widget">
+            <div class="widget-header">
+                <span class="widget-title">Погода</span>
+                <button class="widget-refresh" id="weather-refresh" title="Обновить">↻</button>
+            </div>
+            <div class="widget-body" id="weather-body">
+                <div class="weather-status">Определяем местоположение…</div>
+            </div>
+        </div>
+
+        <div class="widget-card" id="calculator-widget">
+            <div class="widget-header">
+                <span class="widget-title">Калькулятор</span>
+                <button class="widget-refresh" id="calc-clear-all" title="Сбросить">C</button>
+            </div>
+            <div class="widget-body">
+                <div class="calc-display" id="calc-display">0</div>
+                <div class="calc-grid">
+                    <button class="calc-btn calc-op" data-action="clear">AC</button>
+                    <button class="calc-btn calc-op" data-action="sign">+/-</button>
+                    <button class="calc-btn calc-op" data-action="percent">%</button>
+                    <button class="calc-btn calc-op calc-accent" data-op="/">÷</button>
+
+                    <button class="calc-btn" data-num="7">7</button>
+                    <button class="calc-btn" data-num="8">8</button>
+                    <button class="calc-btn" data-num="9">9</button>
+                    <button class="calc-btn calc-op calc-accent" data-op="*">×</button>
+
+                    <button class="calc-btn" data-num="4">4</button>
+                    <button class="calc-btn" data-num="5">5</button>
+                    <button class="calc-btn" data-num="6">6</button>
+                    <button class="calc-btn calc-op calc-accent" data-op="-">−</button>
+
+                    <button class="calc-btn" data-num="1">1</button>
+                    <button class="calc-btn" data-num="2">2</button>
+                    <button class="calc-btn" data-num="3">3</button>
+                    <button class="calc-btn calc-op calc-accent" data-op="+">+</button>
+
+                    <button class="calc-btn calc-zero" data-num="0">0</button>
+                    <button class="calc-btn" data-action="decimal">,</button>
+                    <button class="calc-btn calc-op calc-accent calc-equals" data-action="equals">=</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-card" id="system-widget">
+            <div class="widget-header">
+                <span class="widget-title">Система</span>
+                <button class="widget-refresh" id="system-refresh" title="Обновить">↻</button>
+            </div>
+            <div class="widget-body">
+                <div class="system-info-grid" id="system-info-grid"></div>
+            </div>
+        </div>
+
+        <div class="widget-card" id="todo-widget">
+            <div class="widget-header">
+                <span class="widget-title">Дела</span>
+            </div>
+            <div class="widget-body">
+                <form id="todo-form" class="todo-form">
+                    <input type="text" id="todo-input" placeholder="Новая задача...">
+                    <button type="submit" class="btn btn-primary todo-add-btn">+</button>
+                </form>
+                <div class="todo-list" id="todo-list"></div>
+            </div>
+        </div>
+
+        <div class="widget-card" id="notes-widget">
+            <div class="widget-header">
+                <span class="widget-title">Заметки</span>
+                <span class="widget-save-hint" id="notes-save-hint"></span>
+            </div>
+            <div class="widget-body">
+                <textarea id="notes-textarea" placeholder="Пиши сюда что угодно, сохранится автоматически..."></textarea>
+            </div>
+        </div>
+
+        <div id="custom-widgets-container"></div>
+    </div>
+
+    <div class="footer">
+        <img class="running-fox" src="fox-loading.gif" alt="Running Fox"
+            onerror="this.style.display='none'">
+    </div>
+
+    <div id="context-menu">
+        <div class="menu-item" id="ctx-edit">Редактировать</div>
+        <div class="menu-item" id="ctx-delete" style="color: #ff6b6b;">Удалить</div>
+    </div>
+
+    <div class="modal" id="site-modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Добавить ярлык</h3>
+            <input type="text" id="site-name" placeholder="Название сайта (например: GitHub)">
+            <input type="text" id="site-url" placeholder="URL-адрес (например: https://github.com)">
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="modal-cancel">Отмена</button>
+                <button class="btn btn-primary" id="modal-save">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка "bg-modal" (Система/Цвет/Фон/Поиск/Данные) убрана - её
+         функционал перенесён в нативный диалог CustomizationManager,
+         см. GOR_Brauzer/browser_dialogs.py -->
+
+    <div class="modal" id="widget-settings-modal">
+        <div class="modal-content modal-content-tabbed">
+
+            <div class="modal-tabs" id="widget-modal-tabs">
+                <button class="modal-tab active" data-tab="wtab-visibility">Видимость</button>
+                <button class="modal-tab" data-tab="wtab-create">Свой виджет</button>
+            </div>
+
+            <div class="modal-tab-panels">
+
+                <div class="tab-panel active" id="wtab-visibility">
+                    <h3>Показывать / скрывать виджеты</h3>
+                    <div class="settings-card" id="builtin-visibility-list">
+                        <div class="setting-group-row">
+                            <label for="vis-weather-widget">Погода</label>
+                            <input type="checkbox" class="widget-vis-toggle" id="vis-weather-widget" data-widget-id="weather-widget" checked>
+                        </div>
+                        <div class="setting-group-row">
+                            <label for="vis-calculator-widget">Калькулятор</label>
+                            <input type="checkbox" class="widget-vis-toggle" id="vis-calculator-widget" data-widget-id="calculator-widget" checked>
+                        </div>
+                        <div class="setting-group-row">
+                            <label for="vis-system-widget">Система</label>
+                            <input type="checkbox" class="widget-vis-toggle" id="vis-system-widget" data-widget-id="system-widget" checked>
+                        </div>
+                        <div class="setting-group-row">
+                            <label for="vis-todo-widget">Дела</label>
+                            <input type="checkbox" class="widget-vis-toggle" id="vis-todo-widget" data-widget-id="todo-widget" checked>
+                        </div>
+                        <div class="setting-group-row">
+                            <label for="vis-notes-widget">Заметки</label>
+                            <input type="checkbox" class="widget-vis-toggle" id="vis-notes-widget" data-widget-id="notes-widget" checked>
+                        </div>
+                    </div>
+
+                    <h3>Мои виджеты</h3>
+                    <div class="settings-card" id="custom-widgets-manage-list">
+                        <div class="widget-empty-hint">Пока нет своих виджетов</div>
+                    </div>
+                </div>
+
+                <div class="tab-panel" id="wtab-create">
+                    <h3>Добавить виджет</h3>
+                    <div class="settings-card">
+                        <div class="setting-group">
+                            <label for="custom-widget-name">Название виджета:</label>
+                            <input type="text" id="custom-widget-name" placeholder="Например: Мой сайт">
+                        </div>
+                        <div class="setting-group">
+                            <label for="custom-widget-url">URL сайта:</label>
+                            <input type="text" id="custom-widget-url" placeholder="https://example.com">
+                        </div>
+
+                        <div class="cw-source-divider">или</div>
+
+                        <div class="setting-group">
+                            <label>Свой HTML-файл с компьютера:</label>
+                            <button class="btn btn-secondary" id="custom-widget-file-btn" type="button">📄 Выбрать HTML-файл</button>
+                            <input type="file" id="custom-widget-file-input" accept=".html,.htm,text/html" style="display:none;">
+                            <span id="custom-widget-file-name" style="font-size:0.78rem; color:#868e96;"></span>
+                        </div>
+
+                        <div class="setting-group-row" id="custom-widget-form-actions" style="justify-content: flex-start; gap: 10px;">
+                            <button class="btn btn-primary" id="custom-widget-add-btn">+ Добавить виджет</button>
+                            <button class="btn btn-secondary" id="custom-widget-cancel-edit-btn" style="display:none;">Отмена</button>
+                        </div>
+                        <span style="font-size:0.75rem; color:#868e96;">Ссылка открывается прямо в карточке (некоторые сайты вроде Google/YouTube это запрещают). Свой HTML-файл выполняется в изолированном режиме и всегда работает. Потяни за нижний правый угол карточки, чтобы изменить высоту.</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="widget-settings-close">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>
