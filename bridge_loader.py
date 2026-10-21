@@ -6,6 +6,8 @@ for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras", "GOR
     _p = os.path.join(_PROJECT_ROOT, _sub)
     if _p not in sys.path:
         sys.path.insert(0, _p)
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 import sys
 import os
@@ -16,7 +18,7 @@ import hashlib
 import time
 import tempfile
 import platform
-from PyQt6.QtWidgets import QApplication, QPushButton, QMessageBox
+from PyQt6.QtWidgets import QApplication, QPushButton, QMessageBox, QDialog
 from PyQt6.QtCore import Qt, QProcess, QCoreApplication
 
 from style_loader import apply_global_style
@@ -24,6 +26,7 @@ from updater import UpdateWorker, get_local_version, UpdaterDialog
 from lang_loader import tr
 from addon_logger import log_activity_for_addon
 import addon_watchdog
+from addon_API import manager as addon_manager, emit_event, Events, prepare_addon_folder
 
 # Добавляем путь для импорта
 current_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -112,8 +115,12 @@ def change_language(lang_code):
 # --------------------------------------------------------------------- #
 # Полноценный перезапуск лаунчера через bridge_loader.
 # --------------------------------------------------------------------- #
-def restart_launcher(confirm=True):
-    """Надежный перезапуск GorLauncher с сохранением всех аддонов, обновлений и UI."""
+def restart_launcher(confirm=True, account=None):
+    """Надежный перезапуск GorLauncher с сохранением всех аддонов, обновлений и UI.
+
+    Если передан `account` - перезапущенный процесс сразу активирует этот
+    аккаунт и НЕ показывает окно выбора аккаунта (используется окном
+    переключения аккаунта - пользователь там уже выбрал и подтвердил)."""
     if confirm:
         reply = QMessageBox.question(
             None, tr("launcher.restart_confirm_title"),
@@ -141,6 +148,9 @@ def restart_launcher(confirm=True):
         cmd = [sys.executable, gor_py_candidate]
     else:
         cmd = [sys.executable] + sys.argv
+
+    if account:
+        cmd = cmd + ["--account", account]
 
     try:
         creationflags = 0
@@ -229,7 +239,8 @@ def load_addons(launcher):
         core_dir = os.path.join(addon_path, "core")
         web_dir = os.path.join(addon_path, "web")
 
-        if not (os.path.exists(config_path) and os.path.exists(core_dir) and os.path.exists(web_dir)):
+        # web/ необязателен: если его нет, prepare_addon_folder() создаст заглушку
+        if not (os.path.exists(config_path) and os.path.exists(core_dir)):
             continue
 
         control_center_found = True
@@ -242,6 +253,10 @@ def load_addons(launcher):
             continue
 
         addon_name = config.get("name", folder)
+
+        # Для ВСЕХ аддонов (в т.ч. выключенных): создаём web/index.html, если его нет,
+        # иначе Control Center не покажет аддон и его нельзя будет включить.
+        prepare_addon_folder(addon_path, config)
 
         # Проверяем и по имени папки, и по отображаемому имени - так же,
         # как это делает ControlCenter.scan_addons() при определении enabled.
@@ -268,21 +283,10 @@ def load_addons(launcher):
 
             install_requirements(addon_path)
 
-            core_script = os.path.join(core_dir, start_filename)
-
-            if os.path.exists(core_script):
-                log_activity_for_addon(addon_path, "info", f"Загрузка модуля: {start_filename}")
-                # Уникальное имя модуля на каждый аддон (folder), а не одно
-                # общее "addon_module" на всех - иначе при нескольких
-                # аддонах возможны коллизии имён модулей.
-                spec = importlib.util.spec_from_file_location(f"addon_module_{folder}", core_script)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                if hasattr(module, "init_addon"):
-                    module.init_addon(launcher)
-                log_activity_for_addon(addon_path, "info", "Аддон успешно запущен")
-            else:
-                log_activity_for_addon(addon_path, "error", f"Файл {start_filename} не найден в core/")
+            # Запуск через addon_API: понимает классические аддоны
+            # (init_addon(launcher)), аддоны с api (init_addon(launcher, api))
+            # и новые (class Addon). Логи пишет сам загрузчик.
+            addon_manager.load(launcher, addon_path, config)
         except Exception as e:
             print(f"Ошибка в {folder}: {e}")
             log_activity_for_addon(addon_path, "error", f"Ошибка запуска: {e}")
@@ -324,6 +328,40 @@ def add_restart_button(launcher):
         header_lay.insertWidget(burger_idx, btn)
     else:
         header_lay.addWidget(btn)
+
+
+def add_account_button(launcher, account_name):
+    """Кнопка-обложка в шапке лаунчера. Открывает окно переключения
+    аккаунта (большая обложка текущего + список остальных)."""
+    from account_dialog import AccountSwitcherDialog, circular_avatar
+    from PyQt6.QtGui import QIcon
+    from PyQt6.QtCore import QSize
+
+    btn = QPushButton()
+    btn.setObjectName("AccountBtn")
+    btn.setIcon(QIcon(circular_avatar(account_name, 32)))
+    btn.setIconSize(QSize(30, 30))
+    btn.setFixedSize(38, 38)
+    btn.setToolTip(f"Аккаунт: {account_name}")
+    btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    btn.setStyleSheet("QPushButton { background: transparent; border-radius: 19px; } "
+                       "QPushButton:hover { background: rgba(255,255,255,0.08); }")
+
+    def _open_switcher():
+        dlg = AccountSwitcherDialog(
+            account_name, on_switch_confirmed=lambda target: restart_launcher(confirm=False, account=target),
+            parent=launcher,
+        )
+        dlg.exec()
+        # если обложку сменили, но не переключались - обновим иконку сразу
+        btn.setIcon(QIcon(circular_avatar(account_name, 32)))
+
+    btn.clicked.connect(_open_switcher)
+
+    header_lay = launcher.header_bar.layout() if hasattr(launcher, "header_bar") else launcher.main_lay.itemAt(0).layout()
+    # Кнопка ставится САМОЙ ПЕРВОЙ в шапке (слева от "Всего игр: ..."),
+    # а не рядом с бургер-меню, как остальные служебные кнопки.
+    header_lay.insertWidget(0, btn)
 
 
 def add_tray_button(launcher):
@@ -411,9 +449,46 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     apply_global_style(app)
+
+    # --------------------------------------------------------------- #
+    # Выбор аккаунта. До этого момента ничего не читает и не пишет
+    # games_data.json / GOR_Profile / addons - см. shared/account_manager.py
+    #
+    # Если процесс перезапущен из окна переключения аккаунта
+    # (AccountSwitcherDialog передаёт "--account <имя>" в restart_launcher),
+    # пользователь уже выбрал аккаунт и ввёл пароль ДО перезапуска - окно
+    # выбора можно пропустить и активировать аккаунт сразу.
+    # --------------------------------------------------------------- #
+    import account_manager as _am
+    from account_dialog import AccountDialog, AccountSwitcherDialog
+
+    _preselected_account = None
+    if "--account" in sys.argv:
+        _idx = sys.argv.index("--account")
+        if _idx + 1 < len(sys.argv):
+            _candidate = sys.argv[_idx + 1]
+            if _am.account_exists(_candidate):
+                _preselected_account = _candidate
+
+    if _preselected_account:
+        active_account = _preselected_account
+    else:
+        _account_dialog = AccountDialog()
+        if _account_dialog.exec() != QDialog.DialogCode.Accepted:
+            sys.exit(0)
+        active_account = _account_dialog.selected_account
+
+    _am.activate_account(active_account)
+
     launcher = GORLauncher()
     load_addons(launcher)
+    try:
+        addon_manager.load_builtin(launcher)      # Theme Studio и др. встроенные
+    except Exception as _e:
+        print(f"[addon_API] Встроенные аддоны не загружены: {_e}")
+    emit_event(Events.ADDONS_LOADED)
     add_restart_button(launcher)
+    add_account_button(launcher, active_account)
     add_tray_button(launcher)
     launcher.show()
     check_updates_in_background(launcher)

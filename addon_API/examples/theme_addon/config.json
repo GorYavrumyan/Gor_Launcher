@@ -1,0 +1,9 @@
+{
+  "name": "Пример: аддон с темой",
+  "version": "1.0",
+  "author": "GOR",
+  "description": "Устанавливает тему «Закат» и умеет автоматически менять тему по времени суток.",
+  "start_file": "main.py",
+  "min_api": 1,
+  "settings_defaults": {"auto_day_night": false}
+}

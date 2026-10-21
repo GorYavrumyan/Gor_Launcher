@@ -1,0 +1,15 @@
+{
+  "name": "Ретро-терминал",
+  "author": "GOR",
+  "version": "1.0",
+  "description": "Зелёный на чёрном, моноширинный шрифт, острые углы",
+  "colors": {
+    "bg": "#000000", "surface": "#061406", "surface_alt": "#030a03",
+    "surface_hover": "#0c260c", "border": "#0f5a0f",
+    "text": "#33ff66", "text_muted": "#1fa044",
+    "accent": "#00c040", "danger": "#ff4040", "warning": "#e6e600",
+    "editor_bg": "#020802", "editor_accent": "#00a035"
+  },
+  "font": {"family": "Consolas", "size": 13},
+  "qss": "theme.qss"
+}

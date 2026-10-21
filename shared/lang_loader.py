@@ -122,9 +122,31 @@ def _load_lang_file(code):
 # --------------------------------------------------------------------- #
 # Текущий язык (хранится в games_data.json -> "language")
 # --------------------------------------------------------------------- #
+def _accounts():
+    """Предпочтения аккаунтов (addon_API/accounts.py): язык хранится у КАЖДОГО аккаунта свой.
+    Если модуля нет или аккаунтов нет - возвращает None, и всё работает по-старому."""
+    try:
+        import sys as _s
+        if _BASE_DIR not in _s.path:
+            _s.path.append(_BASE_DIR)
+        from addon_API import accounts
+        return accounts if accounts.active_name() else None
+    except Exception:
+        return None
+
+
 def get_language():
-    """Читает текущий выбранный язык из games_data.json.
-    Если файла/поля нет - возвращает DEFAULT_LANG, ничего не создавая."""
+    """Читает текущий выбранный язык: сначала из предпочтений активного аккаунта
+    (accounts/<имя>/preferences.json), затем из games_data.json.
+    Если нигде нет - возвращает DEFAULT_LANG, ничего не создавая."""
+    acc = _accounts()
+    if acc is not None:
+        try:
+            code = acc.pref("language")
+            if code:
+                return code
+        except Exception:
+            pass
     if os.path.exists(_DATA_FILE):
         try:
             with open(_DATA_FILE, "r", encoding="utf-8") as f:
@@ -152,6 +174,12 @@ def set_language(code):
             json.dump(data, f, indent=4, ensure_ascii=False)
     except Exception as e:
         print(f"[lang_loader] Не удалось сохранить язык в {_DATA_FILE}: {e}")
+    acc = _accounts()
+    if acc is not None:                       # язык запоминается за аккаунтом
+        try:
+            acc.set_pref("language", code)
+        except Exception as e:
+            print(f"[lang_loader] Не удалось сохранить язык аккаунта: {e}")
     reload_language(code)
 
 

@@ -1,0 +1,12 @@
+{
+  "name": "Неоновый розовый",
+  "author": "GOR",
+  "version": "1.0",
+  "description": "Тёмно-фиолетовый фон и яркий розовый акцент",
+  "colors": {
+    "bg": "#0d0014", "surface": "#1a0a24", "surface_alt": "#140a1c",
+    "surface_hover": "#2a1238", "border": "#3d1d52",
+    "text": "#fbeaff", "text_muted": "#a58ab8",
+    "accent": "#ff2d95", "editor_bg": "#150a1f", "editor_accent": "#d81b7a"
+  }
+}

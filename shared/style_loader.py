@@ -40,6 +40,19 @@ def _detect_base_dir():
 _BASE_DIR = _detect_base_dir()
 
 
+def _apply_theme(base_qss):
+    """Накладывает активную тему (папка themes/, см. addon_API/themes.py) на
+    базовый style.qss. Любой сбой - возвращаем базовый стиль как есть."""
+    try:
+        if _BASE_DIR not in sys.path:
+            sys.path.append(_BASE_DIR)
+        from addon_API.themes import build_stylesheet
+        return build_stylesheet(base_qss)
+    except Exception as e:
+        print(f"[style_loader] Темы недоступны, использую базовый стиль: {e}")
+        return base_qss
+
+
 def load_stylesheet():
     """Читает style.qss из корня проекта и возвращает его содержимое.
 
@@ -53,7 +66,7 @@ def load_stylesheet():
         return ""
     try:
         with open(style_path, 'r', encoding='utf-8') as f:
-            return f.read()
+            return _apply_theme(f.read())
     except Exception as e:
         print(f"[style_loader] Не удалось прочитать {STYLE_FILENAME}: {e}")
         return ""

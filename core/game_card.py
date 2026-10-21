@@ -179,6 +179,11 @@ class GameCard(QFrame):
         copy_act = QAction(tr("game_card.copy_path"), self)
         copy_act.triggered.connect(self.copy_path_to_clipboard)
         menu.addAction(copy_act)
+        try:  # аддоны могут добавить свои пункты (addon_API: game_card_menu)
+            import addon_API
+            addon_API.emit_event("game_card_menu", menu, self.game_data, self)
+        except Exception:
+            pass
         menu.exec(self.mapToGlobal(pos))
 
     def pick_guide_group(self):
@@ -285,11 +290,22 @@ class GameCard(QFrame):
             return
 
         try: 
+            try:  # перехватчики аддонов (addon_API): могут отменить запуск
+                import addon_API
+                if not addon_API.allow("before_game_launch", self.game_data):
+                    return
+            except Exception:
+                pass
             path = self.game_data['path']
             if path.lower().endswith(('.exe', '.bat')):
                 full_path = os.path.abspath(path)
                 working_dir = os.path.dirname(full_path)
                 args = self.game_data.get('args', '')
+                try:  # фильтры аддонов (addon_API): можно дописать аргументы запуска
+                    import addon_API
+                    args = addon_API.apply_filter("game_launch_args", args, self.game_data) or ''
+                except Exception:
+                    pass
                 start_t = time.time()
                 
                 cmd_list = [full_path]
@@ -320,6 +336,11 @@ class GameCard(QFrame):
                 if hasattr(self.parent_launcher, "on_game_started"):
                     self.parent_launcher.on_game_started(self.game_data)
                 self.parent_launcher.on_game_session_changed()
+                try:  # событие для аддонов (addon_API)
+                    import addon_API
+                    addon_API.emit_event("game_started", self.game_data)
+                except Exception:
+                    pass
             else:
                 universal_launch(path)
         except Exception as e: 
@@ -355,6 +376,11 @@ class GameCard(QFrame):
         self.parent_launcher.on_game_session_changed()
 
         self.parent_launcher.finalize_history_session(duration, game_data)
+        try:  # событие для аддонов (addon_API)
+            import addon_API
+            addon_API.emit_event("game_finished", duration, game_data)
+        except Exception:
+            pass
 
     def mouseDoubleClickEvent(self, e):
         if e.button() == Qt.MouseButton.LeftButton:

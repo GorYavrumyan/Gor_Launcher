@@ -583,6 +583,9 @@ class GORLauncher(QMainWindow):
 
     def change_language(self, code, name):
         set_language(code)
+        # games_info живёт в памяти и целиком пишется в games_data.json при каждом save_data():
+        # без этой строки новый язык затирался бы старым значением из памяти
+        self.games_info["language"] = code
         reply = QMessageBox.question(
             self, tr("launcher.language_restart_title"),
             tr("launcher.language_restart_text", name=name)
@@ -701,6 +704,12 @@ class GORLauncher(QMainWindow):
                 c += 1
                 if c > 4:
                     c, r = 0, r + 1
+
+        try:  # событие для аддонов (addon_API)
+            import addon_API
+            addon_API.emit_event("library_refreshed")
+        except Exception:
+            pass
 
     def add_game_dialog(self):
         proc = run_editor_process("game_editor", py_subdir="editors")
@@ -1058,6 +1067,11 @@ class GORLauncher(QMainWindow):
             self.refresh_list()
 
     def closeEvent(self, event):
+        try:  # событие для аддонов (addon_API)
+            import addon_API
+            addon_API.emit_event("launcher_closing")
+        except Exception:
+            pass
         # Прячем иконку трея, если она была показана - иначе после закрытия
         # лаунчера в трее останется "призрак" значка.
         if self.tray_icon is not None:

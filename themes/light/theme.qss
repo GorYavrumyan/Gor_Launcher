@@ -1,0 +1,10 @@
+/* В основном стиле у многих элементов жёстко задан белый текст -
+   для светлой темы возвращаем читаемый цвет. */
+QLineEdit, QTextEdit, QPlainTextEdit, QComboBox, QSpinBox,
+QListWidget, QTreeWidget, QTableWidget, QCheckBox, QRadioButton, QGroupBox {
+    color: {{text}};
+}
+QPushButton { color: {{text}}; }
+QPushButton:hover, QPushButton:pressed { color: #ffffff; }
+QTabBar::tab { color: {{text}}; }
+QTabBar::tab:selected { color: #ffffff; }

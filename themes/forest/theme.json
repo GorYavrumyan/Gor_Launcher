@@ -1,0 +1,13 @@
+{
+  "name": "Лесная",
+  "author": "GOR",
+  "version": "1.0",
+  "description": "Спокойные зелёные тона",
+  "colors": {
+    "bg": "#0b110d", "surface": "#14201a", "surface_alt": "#101a14",
+    "surface_hover": "#1c2c23", "border": "#28402f",
+    "text": "#e8f5ec", "text_muted": "#7fa38b",
+    "accent": "#2ecc71", "success": "#1fa85a",
+    "editor_bg": "#12201a", "editor_accent": "#27ae60"
+  }
+}

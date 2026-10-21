@@ -1,0 +1,9 @@
+{
+  "name": "Страж времени ⏱",
+  "version": "1.0",
+  "author": "GOR",
+  "description": "Считает время игры по дням (своя SQLite-база), рисует график за неделю и спрашивает подтверждение, если дневной лимит исчерпан. Показывает, как работают api.before, api.db, api.ui.chart, api.ui.form, api.schedule и api.expose.",
+  "start_file": "main.py",
+  "min_api": 1,
+  "settings_defaults": {"enabled": true, "daily_limit_min": 180, "remind_at": "23:00"}
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Пример: новый аддон",
+  "version": "1.0",
+  "author": "GOR",
+  "description": "Класс Addon + addon_API: вкладка, кнопка в шапке, пункт в меню карточки, события, настройки, переводы, стиль.",
+  "start_file": "main.py",
+  "min_api": 1,
+  "settings_defaults": {"total_seconds": 0}
+}

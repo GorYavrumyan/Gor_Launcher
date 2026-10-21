@@ -1,0 +1,7 @@
+{
+  "name": "Пример: классический аддон",
+  "version": "1.0",
+  "author": "GOR",
+  "description": "Работает по-старому: init_addon(launcher). API не нужен - полный доступ к лаунчеру уже есть.",
+  "start_file": "main.py"
+}

@@ -1,0 +1,3 @@
+QPushButton, QLineEdit, QComboBox, QTextEdit, QListWidget { border-radius: 0px; }
+QPushButton { color: {{text}}; }
+QPushButton:hover { color: #000000; }

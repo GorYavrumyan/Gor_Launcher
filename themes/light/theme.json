@@ -1,0 +1,14 @@
+{
+  "name": "Светлая",
+  "author": "GOR",
+  "version": "1.0",
+  "description": "Светлое оформление для дневного времени",
+  "colors": {
+    "bg": "#f2f3f5", "surface": "#ffffff", "surface_alt": "#e9ebee",
+    "surface_hover": "#eef0f3", "border": "#c9ced6",
+    "text": "#1b1f24", "text_muted": "#6a7380",
+    "accent": "#0b6fd6", "warning": "#c98a00",
+    "editor_bg": "#f7f7f9", "editor_accent": "#0b6fd6"
+  },
+  "qss": "theme.qss"
+}

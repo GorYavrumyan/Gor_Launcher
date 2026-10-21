@@ -1,0 +1,21 @@
+{
+  "name": "GorStyle",
+  "author": "",
+  "version": "1.0",
+  "description": "Создана в Theme Studio",
+  "colors": {
+    "bg": "#000034",
+    "surface": "#1a168d",
+    "surface_alt": "#060512",
+    "surface_hover": "#2c27b3",
+    "border": "#1717b9",
+    "text": "#5a55f5",
+    "text_muted": "#2c27b3",
+    "accent": "#5227ff",
+    "accent_dark": "#2e00e9",
+    "accent_hover": "#7350ff",
+    "success": "#1fa85a",
+    "editor_bg": "#000034",
+    "editor_accent": "#5227ff"
+  }
+}
