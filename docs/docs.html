@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Документация — GOR Launcher</title>
+    <title data-i18n="titleDocs">Документация — GOR Launcher</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <script>try { if (localStorage.getItem('gor_theme') === 'light') document.body.classList.add('light-mode'); } catch (e) { }</script>
 
     <div class="glow-bg"></div>
 
@@ -19,66 +20,54 @@
             <span class="logo-text">GOR<span class="highlight">LAUNCHER</span></span>
         </div>
         <nav>
-            <a href="index.html">Главная</a>
-            <a href="docs.html" class="active">Документация</a>
-            <a href="download.html" class="nav-btn">Загрузить</a>
+            <a href="index.html" data-i18n="navHome">Главная</a>
+            <a href="docs.html" class="active" data-i18n="navDocs">Документация</a>
+            <a></a>Загрузить</a>
         </nav>
 
-        <!-- Элементы управления языком и темой -->
         <div class="header-controls">
-            <!-- Переключатель языка -->
             <div class="lang-selector">
-                <button id="lang-btn" class="ctrl-btn"><i class="fa-solid fa-globe"></i> <span
-                        id="current-lang">RU</span></button>
+                <button id="lang-btn" class="ctrl-btn" aria-haspopup="true" data-i18n-title="langTitle" title="Язык">
+                    <i class="fa-solid fa-globe"></i> <span id="current-lang">RU</span>
+                </button>
                 <div class="lang-dropdown">
-                    <button onclick="setLanguage('ru')">Русский</button>
-                    <button onclick="setLanguage('en')">English</button>
-                    <button onclick="setLanguage('am')">Հայերեն</button>
+                    <button data-lang="ru">Русский</button>
+                    <button data-lang="en">English</button>
+                    <button data-lang="am">Հայերեն</button>
                 </div>
             </div>
 
-            <!-- Переключатель темы -->
-            <button id="theme-toggle" class="ctrl-btn" title="Toggle Theme">
+            <button id="theme-toggle" class="ctrl-btn" data-i18n-title="themeTitle" title="Сменить тему">
                 <i class="fa-solid fa-sun" id="theme-icon"></i>
             </button>
         </div>
     </header>
 
     <section class="section">
-        <h1 class="section-title">ПОЛНАЯ ДОКУМЕНТАЦИЯ И <span class="gradient-text">API РУКОВОДСТВО</span></h1>
+        <h1 class="section-title" data-i18n="docsTitle">ПОЛНАЯ ДОКУМЕНТАЦИЯ И <span class="gradient-text">API
+                РУКОВОДСТВО</span></h1>
 
-        <!-- Поле поиска -->
-        <div style="max-width: 700px; margin: 0 auto 40px; position: relative;">
-            <i class="fa-solid fa-magnifying-glass"
-                style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
-            <input type="text" id="docs-search" onkeyup="filterDocs()"
-                placeholder="Поиск по документации (QWebChannel, Sunshine, PyQt6, JSON)..."
-                style="width: 100%; padding: 16px 20px 16px 50px; background: #0f1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; outline: none; font-size: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        <div class="docs-search-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="docs-search" class="docs-search" onkeyup="filterDocs()"
+                data-i18n-placeholder="docsSearchPh"
+                placeholder="Поиск по документации (QWebChannel, Sunshine, PyQt6, JSON)...">
         </div>
 
-        <div style="display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap;">
-
-            <!-- Боковое меню -->
-            <aside
-                style="flex: 1; min-width: 250px; background: #0d0e12; border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; padding: 20px; position: sticky; top: 90px;">
-                <h3
-                    style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
-                    Разделы</h3>
-                <ul id="sidebar-menu"
-                    style="list-style: none; display: flex; flex-direction: column; gap: 10px; padding: 0;"></ul>
+        <div class="docs-layout">
+            <aside class="docs-sidebar">
+                <h3 class="sidebar-title" data-i18n="docsSidebar">Разделы</h3>
+                <ul id="sidebar-menu" class="sidebar-menu"></ul>
             </aside>
 
-            <!-- Контейнер блоков -->
-            <div id="docs-container" style="flex: 3; min-width: 300px;"></div>
-
+            <div id="docs-container" class="docs-main"></div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 GOR Launcher Project. Powered by Python & PyQt6.</p>
+        <p>&copy; 2026 GOR Launcher Project. <span data-i18n="footer">Работает на Python и PyQt6.</span></p>
     </footer>
 
-    <!-- Подключение скриптов -->
     <script src="docs-data.js"></script>
     <script src="script.js"></script>
 </body>

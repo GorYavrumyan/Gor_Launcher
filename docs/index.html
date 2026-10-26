@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOR Launcher — Игровой Центр Нового Поколения</title>
+    <title data-i18n="titleIndex">GOR Launcher — Игровой Центр Нового Поколения</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <script>try { if (localStorage.getItem("gor_theme") === "light") document.body.classList.add("light-mode"); } catch (e) { }</script>
 
     <div class="glow-bg"></div>
 
@@ -19,26 +20,24 @@
             <span class="logo-text">GOR<span class="highlight">LAUNCHER</span></span>
         </div>
         <nav>
-            <a href="index.html" class="active">Главная</a>
-            <a href="docs.html">Документация</a>
-            <a href="download.html" class="nav-btn">Загрузить</a>
+            <a href="index.html" class="active" data-i18n="navHome">Главная</a>
+            <a href="docs.html" data-i18n="navDocs">Документация</a>
+            <a href="download.html" class="nav-btn" data-i18n="navDownload">Загрузить</a>
         </nav>
 
-        <!-- Элементы управления языком и темой -->
         <div class="header-controls">
-            <!-- Переключатель языка -->
             <div class="lang-selector">
-                <button id="lang-btn" class="ctrl-btn"><i class="fa-solid fa-globe"></i> <span
-                        id="current-lang">RU</span></button>
+                <button id="lang-btn" class="ctrl-btn" aria-haspopup="true" data-i18n-title="langTitle" title="Язык">
+                    <i class="fa-solid fa-globe"></i> <span id="current-lang">RU</span>
+                </button>
                 <div class="lang-dropdown">
-                    <button onclick="setLanguage('ru')">Русский</button>
-                    <button onclick="setLanguage('en')">English</button>
-                    <button onclick="setLanguage('am')">Հայերեն</button>
+                    <button data-lang="ru">Русский</button>
+                    <button data-lang="en">English</button>
+                    <button data-lang="am">Հայերեն</button>
                 </div>
             </div>
 
-            <!-- Переключатель темы -->
-            <button id="theme-toggle" class="ctrl-btn" title="Toggle Theme">
+            <button id="theme-toggle" class="ctrl-btn" data-i18n-title="themeTitle" title="Сменить тему">
                 <i class="fa-solid fa-sun" id="theme-icon"></i>
             </button>
         </div>
@@ -46,57 +45,73 @@
 
     <section class="hero">
         <div class="status-badge">
-            <span class="pulse-dot"></span> V1.0.0 Stable — Windows & Linux
+            <span class="pulse-dot"></span> <span data-i18n="badge">V1.0.0 Стабильная — Windows и Linux</span>
         </div>
-        <h1>ЭКОСИСТЕМА ДЛЯ <br><span class="gradient-text">ИГР И ВЕБ-СЕРФИНГА</span></h1>
-        <p class="hero-desc">
-            Управляй библиотекой игр, пользуйся встроенным браузером QtWebEngine и запускай кастомные аддоны в одном
-            месте.
+        <h1><span data-i18n="heroPre">ЭКОСИСТЕМА ДЛЯ</span><br><span class="gradient-text typed-text"
+                id="typed-text">ИГР И ВЕБ-СЕРФИНГА</span></h1>
+        <p class="hero-desc" data-i18n="heroDesc">
+            Управляй библиотекой игр, пользуйся встроенным браузером QtWebEngine и запускай кастомные аддоны в одном месте.
         </p>
 
-        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 50px;">
-            <a href="download.html" class="nav-btn" style="padding: 15px 30px; font-size: 16px;">Перейти к
-                скачиванию</a>
-            <a href="docs.html" class="btn-secondary"
-                style="padding: 15px 30px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; text-decoration: none; transition: 0.3s;">Инструкция</a>
+        <div class="hero-actions">
+            <a href="download.html" class="nav-btn" style="padding: 15px 30px; font-size: 16px;"
+                data-i18n="btnDownloadPage">Перейти к скачиванию</a>
+            <a href="docs.html" class="btn-secondary" style="padding: 15px 30px;" data-i18n="btnDocsPage">Инструкция</a>
         </div>
     </section>
 
-    <!-- Секция Фич -->
     <section class="section">
-        <h2 class="section-title">КЛЮЧЕВЫЕ <span class="gradient-text">ВОЗМОЖНОСТИ</span></h2>
+        <h2 class="section-title" data-i18n="featuresTitle">КЛЮЧЕВЫЕ <span class="gradient-text">ВОЗМОЖНОСТИ</span></h2>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
-            <div class="dark-section" style="padding: 30px; transition: 0.3s;">
-                <i class="fa-solid fa-laptop-code" style="font-size: 32px; color: #a855f7; margin-bottom: 15px;"></i>
-                <h3 style="margin-bottom: 10px;">Встроенный Веб-Браузер</h3>
-                <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">Интегрированный движок
-                    <code>QtWebEngine</code> позволяет искать гайды и прохождения не сворачивая лаунчер.
-                </p>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <i class="fa-solid fa-gamepad" style="color: #a855f7;"></i>
+                <h3 data-i18n="f1Title">Управление Библиотекой Игр</h3>
+                <p data-i18n="f1Desc">Организация по группам и папкам, гибкие аргументы запуска, мониторинг процесса ProcessMonitor и удобные сортировки.</p>
             </div>
 
-            <div class="dark-section" style="padding: 30px; transition: 0.3s;">
-                <i class="fa-solid fa-puzzle-piece" style="font-size: 32px; color: #3b82f6; margin-bottom: 15px;"></i>
-                <h3 style="margin-bottom: 10px;">Поддержка Модулей и Аддонов</h3>
-                <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">Расширяйте функционал с помощью
-                    вкладки-калькулятора, кастомных тем и пользовательских скриптов.</p>
+            <div class="feature-card">
+                <i class="fa-solid fa-globe" style="color: #3b82f6;"></i>
+                <h3 data-i18n="f2Title">Встроенный Браузер GOR_Brauzer</h3>
+                <p data-i18n="f2Desc">Chromium QWebEngine с вкладками, группами, AdBlock, оверлеем гайдов (Ctrl+Shift+K) и LAN UDP-рассылкой.</p>
             </div>
 
-            <div class="dark-section" style="padding: 30px; transition: 0.3s;">
-                <i class="fa-solid fa-tower-broadcast"
-                    style="font-size: 32px; color: #10b981; margin-bottom: 15px;"></i>
-                <h3 style="margin-bottom: 10px;">Remote Streaming</h3>
-                <p style="color: #94a3b8; font-size: 14px; line-height: 1.6;">Готовая интеграция со связкой Sunshine &
-                    Moonlight для трансляции игр на мобильные устройства.</p>
+            <div class="feature-card">
+                <i class="fa-solid fa-users" style="color: #10b981;"></i>
+                <h3 data-i18n="f3Title">Мульти-Аккаунты и Изоляция</h3>
+                <p data-i18n="f3Desc">Мгновенная смена профилей с изоляцией игр, сохранений и браузера через системные ссылки (NTFS/Symlinks).</p>
+            </div>
+
+            <div class="feature-card">
+                <i class="fa-solid fa-palette" style="color: #ec4899;"></i>
+                <h3 data-i18n="f4Title">Кастомизация и Студия Дизайна</h3>
+                <p data-i18n="f4Desc">Встроенные QSS-темы, Theme Studio, кастомные цвета, фреймворк аддонов (калькулятор, монитор ресурсов, эффекты).</p>
+            </div>
+
+            <div class="feature-card">
+                <i class="fa-solid fa-tv" style="color: #f59e0b;"></i>
+                <h3 data-i18n="f5Title">TV-Стриминг и Big Picture</h3>
+                <p data-i18n="f5Desc">Полноэкранный режим Big Picture (F11) под геймпад и встроенный стриминг на ТВ через Sunshine + Moonlight.</p>
+            </div>
+
+            <div class="feature-card">
+                <i class="fa-solid fa-language" style="color: #06b6d4;"></i>
+                <h3 data-i18n="f6Title">Полная Мультиязычность</h3>
+                <p data-i18n="f6Desc">Поддержка 4 языков из коробки: Русский, English, Español, Հայերեն (Armenian) с мгновенным переключением.</p>
+            </div>
+
+            <div class="feature-card">
+                <i class="fa-solid fa-shield-halved" style="color: #8b5cf6;"></i>
+                <h3 data-i18n="f7Title">Авто-Обновлятор и Защита Данных</h3>
+                <p data-i18n="f7Desc">Защищенная атомарная запись JSON с бэкапами (.bak), автообновление с GitHub и локальная офлайн-документация WEB/.</p>
             </div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2026 GOR Launcher Project. Powered by Python & PyQt6.</p>
+        <p>&copy; 2026 GOR Launcher Project. <span data-i18n="footer">Работает на Python и PyQt6.</span></p>
     </footer>
 
-    <!-- Подключение JS -->
     <script src="script.js"></script>
 </body>
 
