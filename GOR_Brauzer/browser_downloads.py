@@ -58,7 +58,11 @@ class DownloadItem(QWidget):
         total_mb = total / (1024 * 1024)
         received_mb = received / (1024 * 1024)
 
-        self.label.setText(f"{self.download_item.downloadFileName()} ({received_mb:.1f} / {total_mb:.1f} MB)")
+        if total > 0:
+            self.label.setText(f"{self.download_item.downloadFileName()} ({received_mb:.1f} / {total_mb:.1f} MB)")
+        else:
+            # размер заранее неизвестен (totalBytes() == -1): раньше выводилось "/ -0.0 MB"
+            self.label.setText(f"{self.download_item.downloadFileName()} ({received_mb:.1f} MB)")
 
         if total > 0:
             self.pbar.setValue(int(received / total * 100))

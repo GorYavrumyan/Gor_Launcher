@@ -85,7 +85,18 @@ PROTECTED_FILE = "games_data.json"
 #
 # Сравнение регистронезависимое (см. _safe_copy_files) - на случай, если
 # папка в репозитории или локально называется "Lang"/"LANG" и т.п.
-UPDATABLE_FOLDERS = {"lang", "core", "shared", "editors", "remote", "addons_sys", "extras"}
+#
+# "addon_API" (библиотека для аддонов) и "GOR_Brauzer" (встроенный браузер) -
+# тоже код лаунчера, на который опирается core/GorLauncher.py. Раньше их не
+# было в списке, и после обновления получался новый core со старым браузером
+# и старым API. Пользовательские данные внутри них защищены через
+# SYNC_SKIP_NAMES (профиль браузера, журналы аддонов, кэш Python).
+UPDATABLE_FOLDERS = {"lang", "core", "shared", "editors", "remote", "addons_sys", "extras",
+                     "addon_api", "gor_brauzer"}
+
+# Имена файлов/папок, которые синхронизация пропускает на любой глубине
+# (сравнение без учёта регистра): данные пользователя и мусор.
+SYNC_SKIP_NAMES = {"__pycache__", "gor_profile", "_data"}
 
 # Локальный файл с версией, которая установлена у пользователя прямо сейчас.
 # Он же и есть version.json из репозитория - при обновлении он будет
@@ -339,6 +350,8 @@ class UpdateWorker(QThread):
         for entry in sorted(os.listdir(src_dir)):
             if self._cancelled:
                 return
+            if entry.lower() in SYNC_SKIP_NAMES:
+                continue
             src_path = os.path.join(src_dir, entry)
             dest_path = os.path.join(dest_dir, entry)
             if os.path.isdir(src_path):
@@ -491,7 +504,9 @@ class UpdaterDialog(QDialog):
                 # bridge_loader <-> updater (bridge_loader сам импортирует updater).
                 from bridge_loader import restart_launcher
                 restart_launcher(confirm=False)
-        elif "отменено" not in message.lower() and "cancel" not in message.lower():
+        elif not (self.worker is not None and getattr(self.worker, "_cancelled", False)):
+            # (раньше отмену определяли по слову в тексте - на армянском сообщение
+            # об отмене не совпадало, и после отмены вылезало лишнее предупреждение)
             QMessageBox.warning(self, tr("updater.window_title"), message)
 
     def cancel_or_close(self):

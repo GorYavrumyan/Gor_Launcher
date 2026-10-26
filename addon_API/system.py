@@ -140,8 +140,10 @@ class SystemAPI:
         for pid in pids:
             try:
                 if self.is_windows:
-                    subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True,
-                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                    r = subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True,
+                                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                    if r.returncode != 0:
+                        continue   # run() не бросает исключение при неудаче - раньше считали и её
                 else:
                     os.kill(pid, 15)
                 n += 1
@@ -150,8 +152,17 @@ class SystemAPI:
         return n
 
     def idle_seconds(self):
-        """Секунды без ввода пользователя (только Windows, иначе None)."""
+        """Секунды без ввода пользователя (Windows; на Linux - через xprintidle, иначе None)."""
         if not self.is_windows:
+            # Linux (X11): утилита xprintidle, если установлена; иначе None
+            try:
+                import shutil
+                exe = shutil.which("xprintidle")
+                if exe:
+                    out = subprocess.run([exe], capture_output=True, text=True, timeout=2).stdout.strip()
+                    return int(out) / 1000.0
+            except Exception:
+                pass
             return None
         try:
             import ctypes
@@ -161,7 +172,11 @@ class SystemAPI:
             info = LASTINPUTINFO()
             info.cbSize = ctypes.sizeof(info)
             ctypes.windll.user32.GetLastInputInfo(ctypes.byref(info))
-            return (ctypes.windll.kernel32.GetTickCount() - info.dwTime) / 1000.0
+            # GetTickCount по умолчанию читается как знаковый int: при аптайме
+            # больше ~24.8 суток значение становилось отрицательным, а через
+            # 49.7 суток счётчик переполняется - считаем как беззнаковый 32-бит.
+            ctypes.windll.kernel32.GetTickCount.restype = ctypes.c_uint
+            return ((ctypes.windll.kernel32.GetTickCount() - info.dwTime) & 0xFFFFFFFF) / 1000.0
         except Exception:
             return None
 

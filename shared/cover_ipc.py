@@ -41,13 +41,18 @@ def try_decode_line(buffer: bytes):
     сокеты не гарантируют, что придёт ровно одно сообщение за один сигнал
     readyRead, буфер нужно копить на стороне вызывающего кода и вызывать
     эту функцию, пока она не перестанет находить полные строки."""
-    if b"\n" not in buffer:
-        return None, buffer
-    line, rest = buffer.split(b"\n", 1)
-    line = line.strip()
-    if not line:
-        return None, rest
-    try:
-        return json.loads(line.decode("utf-8")), rest
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return None, rest
+    # Пустые и битые строки пропускаем и идём дальше по буферу. Раньше такая
+    # строка возвращала (None, rest), цикл у вызывающего кода прерывался, и
+    # полные сообщения, пришедшие следом, зависали до следующего readyRead.
+    while b"\n" in buffer:
+        line, buffer = buffer.split(b"\n", 1)
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            msg = json.loads(line.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            continue
+        if isinstance(msg, dict):
+            return msg, buffer
+    return None, buffer

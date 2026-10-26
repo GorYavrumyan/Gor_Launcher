@@ -163,13 +163,19 @@ class GorAdBlockUpdater(QObject):
         критично: список идемпотентен)."""
         url = url or DEFAULT_DYNAMIC_ADBLOCK_URL
         if self._reply is not None:
+            old, self._reply = self._reply, None
             try:
-                self._reply.abort()
+                old.finished.disconnect()   # отмена не должна выглядеть как "ошибка обновления"
+                old.abort()
             except Exception:
                 pass
+            old.deleteLater()
         request = QNetworkRequest(QUrl(url))
-        self._reply = self._manager.get(request)
-        self._reply.finished.connect(lambda: self._on_finished(self._reply))
+        reply = self._manager.get(request)
+        self._reply = reply
+        # reply фиксируем в замыкании: раньше лямбда читала self._reply в момент
+        # завершения, и после повторного update_now обрабатывала чужой запрос.
+        reply.finished.connect(lambda r=reply: self._on_finished(r))
 
     def _on_finished(self, reply):
         try:
@@ -182,7 +188,8 @@ class GorAdBlockUpdater(QObject):
             return
         finally:
             reply.deleteLater()
-            self._reply = None
+            if self._reply is reply:
+                self._reply = None
 
         domains = _parse_blocklist_text(raw)
         if not domains:
@@ -207,10 +214,21 @@ def _host_is_blocked(host: str) -> bool:
     """True, если host совпадает с одним из заблокированных доменов или
     является его поддоменом (например, "ads.doubleclick.net" блокируется
     по записи "doubleclick.net")."""
-    host = host.lower()
-    if host in BLOCKED_DOMAINS:
-        return True
-    return any(host.endswith("." + d) for d in BLOCKED_DOMAINS)
+    # Раньше после подгрузки динамического списка (сотни тысяч доменов) здесь
+    # перебирался ВЕСЬ набор через any(host.endswith(...)) на КАЖДЫЙ незаблокированный
+    # запрос - страницы грузились с заметной задержкой, а при одновременном
+    # обновлении набора из GUI-потока перебор падал ("Set changed size during
+    # iteration"). Теперь проверяем сам хост и его родительские домены:
+    # a.b.example.com -> b.example.com -> example.com (число проверок = числу меток).
+    host = host.lower().rstrip(".")
+    while host:
+        if host in BLOCKED_DOMAINS:
+            return True
+        dot = host.find(".")
+        if dot == -1:
+            return False
+        host = host[dot + 1:]
+    return False
 
 
 class GorAdBlockInterceptor(QWebEngineUrlRequestInterceptor):

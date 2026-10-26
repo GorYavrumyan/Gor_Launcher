@@ -1,0 +1,1004 @@
+{
+    "groups": {
+        "Platformers": [
+            {
+                "id": "7f6bd810-64d5-4af1-a3a8-d4e0ec4cbc94",
+                "name": "Jumpino",
+                "path": "F:/Godot projects/jumpino.exe",
+                "root_path": "F:/Godot projects",
+                "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 5442
+            }
+        ],
+        "Portal": [
+            {
+                "name": "Portal 1",
+                "path": "F:/Games/Portal/Portal_1/Game/Portal/Portal.exe",
+                "root_path": "F:/Games/Portal/Portal_1",
+                "icon": "F:/fails/Foto_video/Games/Portal.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 10470,
+                "id": "a555edee-0418-4445-9910-b3e6116b46d2"
+            },
+            {
+                "name": "POrtal 2",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2",
+                "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 23931,
+                "id": "723b7fa9-4863-4120-9fa2-356611277598"
+            },
+            {
+                "name": "Portal Stories Mel",
+                "path": "F:/Games/Portal/Portal_Stories_Mel/Portal_Stories_Mel/Game/Start Game.bat",
+                "root_path": "F:/Games/Portal/Portal_Stories_Mel",
+                "icon": "F:/fails/Foto_video/Games/Portal Stories Mel.png",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 116,
+                "id": "ae60da44-5db8-4b6b-880f-2f0392754bc4"
+            },
+            {
+                "name": "Portal Revolution",
+                "path": "F:/Games/Portal/Portal_Revolution/Portal Revolution/bin/win64/revolution.exe",
+                "root_path": "F:/Games/Portal/Portal_Revolution",
+                "icon": "F:/fails/Foto_video/Games/Portal Revolution.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 18292,
+                "id": "d7fcaf74-b250-472d-bc42-ea16e0fa6df0"
+            },
+            {
+                "name": "Portal Rexaura",
+                "path": "F:/Games/Portal/Portal_1/Game/Portal/hl2.exe",
+                "root_path": "F:/Games/Portal/Portal_1/Game/Portal/rexaura",
+                "icon": "F:/fails/Foto_video/Games/Portal rexaura.jpg",
+                "args": "-game rexaura",
+                "favorite": false,
+                "playtime_seconds": 8275,
+                "id": "2cdfcb3d-65cc-4d8c-a10f-ce9966c8a9c1"
+            },
+            {
+                "name": "Portal Designed For Danger",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2/portal2_dlc3",
+                "icon": "F:/fails/Foto_video/Games/Designed for Danger_2.png",
+                "args": "+map dfd_1_intro",
+                "favorite": false,
+                "playtime_seconds": 2988,
+                "id": "ae16983d-9bca-4e51-bdf2-e1baa683740b"
+            },
+            {
+                "id": "ab303547-d78b-4421-a7d7-f78ed8143a11",
+                "name": "Portaql Reloaded",
+                "path": "F:/Games/Portal/Portal Reloaded/Game/Portal Reloaded/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal Reloaded/Game/Portal Reloaded",
+                "icon": "F:/fails/Foto_video/Games/Portal Reloaded.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0
+            },
+            {
+                "id": "26e469e0-e743-419d-81c6-46d7dc0a232d",
+                "name": "Portal Remastered",
+                "path": "F:/Games/Portal/Portal_2/portal2.exe",
+                "root_path": "F:/Games/Portal/Portal_2/portal_remastered",
+                "icon": "F:\\Projects\\__PYTHON__\\_PROJECTS_\\Launcher\\covers\\6328270934f049a0af1546fe980e488f.jpg",
+                "args": "-game portal_remastered -language russian -novid",
+                "favorite": false,
+                "playtime_seconds": 6196
+            }
+        ],
+        "Half-Life": [
+            {
+                "name": "Half-Life 2",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/hl2.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 5514,
+                "id": "e4513fe5-0095-4751-8b06-42b2caf56bd5"
+            },
+            {
+                "name": "Half-Life 2 Episode One",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode One.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2 Episode One.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 13081,
+                "id": "42829484-45a8-4348-9d81-18c4302222bd"
+            },
+            {
+                "name": "Half-Life 2 Episode Two",
+                "path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2/Half-Life 2 Episode Two.exe",
+                "root_path": "F:/Games/Half-Live/Half-Life_2/Half-Life 2",
+                "icon": "F:/fails/Foto_video/Games/Half-Life 2 Episode Two.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "912c592a-c8c4-4848-bf6f-c256f8f74ee9"
+            }
+        ],
+        "Game": [
+            {
+                "name": "GMods",
+                "path": "F:/Games/Garrys_Mod/Game/hl2.exe",
+                "root_path": "F:/Games/Garrys_Mod",
+                "icon": "F:/fails/Foto_video/Games/Garrys Mod.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 0,
+                "id": "7cecda55-8367-4909-8aef-1043dc774499"
+            },
+            {
+                "id": "3d564800-475c-4292-afc7-fca248bac6e4",
+                "name": "Superliminal",
+                "path": "F:/Games/Superliminal/Game/Superliminal/SuperliminalGOG.exe",
+                "root_path": "F:/Games/Superliminal/Game",
+                "icon": "F:/fails/Foto_video/Games/Superliminal.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 6088
+            },
+            {
+                "id": "baab4d6c-acbb-46e8-a24a-802acb670b67",
+                "name": "The Talos Principle",
+                "path": "F:/Games/The_Talos_Principle/The_Talos_Principle_1/Game/The Talos Principle/Bin/x64/Talos.exe",
+                "root_path": "F:/Games/The_Talos_Principle/The_Talos_Principle_1/Game/The Talos Principle/Bin/x64",
+                "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 48425
+            },
+            {
+                "id": "526c90ed-cf16-4a7d-aa22-520b8dcaa59c",
+                "name": "The Entropy Centre",
+                "path": "F:\\Games\\\\The_Entropy_Centre\\game\\Project_Kilo\\Binaries\\Win64\\EntropyCentre-Win64-Shipping.exe",
+                "root_path": "F:/Games/The_Entropy_Centre",
+                "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+                "args": "-OverridePlatformService=GOG -nosteam -dx11 -d3d11",
+                "favorite": false,
+                "playtime_seconds": 40156
+            },
+            {
+                "id": "3c5d2aab-ab77-41a5-a08b-2ea56df36473",
+                "name": "Minecraft",
+                "path": "F:/MySearch/start_Launcher.bat",
+                "root_path": "",
+                "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+                "args": "",
+                "favorite": false,
+                "playtime_seconds": 660
+            }
+        ]
+    },
+    "standalone": [],
+    "history": [
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "25.10.2026 08:06",
+            "session_time": 55
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "25.10.2026 08:04",
+            "session_time": 99
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "25.10.2026 07:56",
+            "session_time": 6
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "25.10.2026 07:55",
+            "session_time": 15
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "24.10.2026 14:26",
+            "session_time": 6
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 21:02",
+            "session_time": 1
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 20:52",
+            "session_time": 1
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "23.10.2026 16:01",
+            "session_time": 5
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "23.10.2026 15:58",
+            "session_time": 17
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 13:56",
+            "session_time": 1
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 10:16",
+            "session_time": 1
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 10:03",
+            "session_time": 1
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "23.10.2026 10:02",
+            "session_time": 5
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "22.10.2026 19:32",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "22.10.2026 14:14",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "21.10.2026 19:09",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "21.10.2026 19:07",
+            "session_time": 19
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "17.10.2026 13:39",
+            "session_time": 18
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "15.10.2026 12:03",
+            "session_time": 46
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "15.10.2026 11:42",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "14.10.2026 19:06",
+            "session_time": 17
+        },
+        {
+            "name": "POrtal 2",
+            "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+            "date": "13.10.2026 14:12",
+            "session_time": 1583
+        },
+        {
+            "name": "POrtal 2",
+            "icon": "F:/fails/Foto_video/Games/Portal 2.jpg",
+            "date": "12.10.2026 18:48",
+            "session_time": 6507
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "07.10.2026 13:59",
+            "session_time": 4769
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "04.10.2026 21:26",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "04.10.2026 20:08",
+            "session_time": 19
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "04.10.2026 14:28",
+            "session_time": 18
+        },
+        {
+            "name": "Minecraft",
+            "icon": "F:/fails/Foto_video/Games/Minecraft.jpg",
+            "date": "04.10.2026 14:13",
+            "session_time": 18
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "04.10.2026 10:06",
+            "session_time": 5729
+        },
+        {
+            "name": "The Talos Principle",
+            "icon": "F:/fails/Foto_video/Games/The Talos Principle.jpg",
+            "date": "04.10.2026 08:31",
+            "session_time": 31
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "26.09.2026 23:03",
+            "session_time": 5237
+        },
+        {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "date": "25.09.2026 20:37",
+            "session_time": 967
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "25.09.2026 20:20",
+            "session_time": 196
+        },
+        {
+            "name": "Portal Remastered",
+            "icon": "F:\\Projects\\__PYTHON__\\_PROJECTS_\\Launcher\\covers\\6328270934f049a0af1546fe980e488f.jpg",
+            "date": "25.09.2026 20:13",
+            "session_time": 3447
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "25.09.2026 17:19",
+            "session_time": 1527
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "24.09.2026 17:05",
+            "session_time": 2503
+        },
+        {
+            "name": "The Entropy Centre",
+            "icon": "F:\\fails\\Foto_video\\Games\\The_Entropy_Centre.jpg",
+            "date": "24.09.2026 16:12",
+            "session_time": 180
+        }
+    ],
+    "addons_list": [
+        "gor_style"
+    ],
+    "language": "hy",
+    "browser": {
+        "history": [
+            {
+                "title": "accounts.google.com/v3/signin/identifier?continue=https://gemini.google.com/signin?continue%3Dhttps://gemini.google.com/&followup=https://gemini.google.com/signin?continue%3Dhttps://gemini.google.com/&passive=1209600&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-719355346:1792838015060704",
+                "url": "https://accounts.google.com/v3/signin/identifier?continue=https://gemini.google.com/signin?continue%3Dhttps://gemini.google.com/&followup=https://gemini.google.com/signin?continue%3Dhttps://gemini.google.com/&passive=1209600&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-719355346:1792838015060704",
+                "time": "14:33",
+                "favicon": ""
+            },
+            {
+                "title": "‎Google Gemini",
+                "url": "https://gemini.google.com/app",
+                "time": "14:33",
+                "favicon": ""
+            },
+            {
+                "title": "gemini.google.com",
+                "url": "https://gemini.google.com/",
+                "time": "14:33",
+                "favicon": ""
+            },
+            {
+                "title": "jumpino - Search results - Wikipedia",
+                "url": "https://en.wikipedia.org/w/index.php?search=jumpino&title=Special:Search&ns0=1",
+                "time": "14:33",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABO0lEQVQ4jaWTMaoCMRCG/wnvDtELmHaxdAmIXcheZA9hYeMNxNZqsc81lu0X+2VLTzBj8V5C8uQ9UAcG5k+YP5kvhPATzCx4IZRSBAD0TnNuQu82J5NPmgFADcMAay2UUjifzwAA733S8zzDWgtrLeZ5xvV6xXK5hPcet9vte/5pmoSIJIQgURtj5HQ6CTOLc06maRJmFmaWuq5TjVg454qNrutEay0hBDkej8V6NC4M+r4XANL3fdo0xogxJul4UK4TxPV6Decc9vt9ArTb7XC/35MehgFVVZUUc7cQghCRjOOYTtNaS9d1wszStm3BgpnlKzfz3mO1WuFyuWCz2aBpGlhrcTgcsN1uAQCLxeLvG0RIRJRmjS9U13XB5wlinlrrgnTbtk/w/jWIDPL8PXvMzz9TzuLVZgB4AExRsO8ga8hoAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "jumpino - Search results - Wikipedia",
+                "url": "https://en.wikipedia.org/w/index.php?search=jumpino&title=Special%3ASearch",
+                "time": "14:33",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABO0lEQVQ4jaWTMaoCMRCG/wnvDtELmHaxdAmIXcheZA9hYeMNxNZqsc81lu0X+2VLTzBj8V5C8uQ9UAcG5k+YP5kvhPATzCx4IZRSBAD0TnNuQu82J5NPmgFADcMAay2UUjifzwAA733S8zzDWgtrLeZ5xvV6xXK5hPcet9vte/5pmoSIJIQgURtj5HQ6CTOLc06maRJmFmaWuq5TjVg454qNrutEay0hBDkej8V6NC4M+r4XANL3fdo0xogxJul4UK4TxPV6Decc9vt9ArTb7XC/35MehgFVVZUUc7cQghCRjOOYTtNaS9d1wszStm3BgpnlKzfz3mO1WuFyuWCz2aBpGlhrcTgcsN1uAQCLxeLvG0RIRJRmjS9U13XB5wlinlrrgnTbtk/w/jWIDPL8PXvMzz9TzuLVZgB4AExRsO8ga8hoAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "en.wikipedia.org/w/index.php?search=jumpino&title=Special%3ASearch&wprov=acrw1_-1",
+                "url": "https://en.wikipedia.org/w/index.php?search=jumpino&title=Special%3ASearch&wprov=acrw1_-1",
+                "time": "14:33",
+                "favicon": ""
+            },
+            {
+                "title": "en.wikipedia.org/wiki/Trampoline",
+                "url": "https://en.wikipedia.org/wiki/Trampoline",
+                "time": "14:32",
+                "favicon": ""
+            },
+            {
+                "title": "facebook.com/jumpinokidsqa/",
+                "url": "https://www.facebook.com/jumpinokidsqa/",
+                "time": "14:32",
+                "favicon": ""
+            },
+            {
+                "title": "google.com/search?q=Jumpino+wiki",
+                "url": "https://www.google.com/search?q=Jumpino+wiki",
+                "time": "14:32",
+                "favicon": ""
+            },
+            {
+                "title": "‎Google Gemini",
+                "url": "https://gemini.google.com/app",
+                "time": "13:41",
+                "favicon": ""
+            },
+            {
+                "title": "gemini.google.com",
+                "url": "https://gemini.google.com/",
+                "time": "13:41",
+                "favicon": ""
+            },
+            {
+                "title": "github.com",
+                "url": "https://github.com/",
+                "time": "08:51",
+                "favicon": ""
+            },
+            {
+                "title": "(184) 16 октября 2026 г. - YouTube",
+                "url": "https://www.youtube.com/shorts/ouWwPBNOwu0",
+                "time": "08:49",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/S_2iN9Lg8dk",
+                "time": "08:49",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Семья поддержала 🤣 #shorts - YouTube",
+                "url": "https://www.youtube.com/shorts/HX6MO6Mr-Qg",
+                "time": "08:49",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) #illustration#art #pov#digitalart#procreate#tattoo - YouTube",
+                "url": "https://www.youtube.com/shorts/E9vI9y3CY38",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/a--hVhVOlF0",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) #illustration#art #pov#digitalart#procreate#tattoo - YouTube",
+                "url": "https://www.youtube.com/shorts/Irn_6tw7DuE",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/a--hVhVOlF0",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) #illustration#art #pov#digitalart#procreate#tattoo - YouTube",
+                "url": "https://www.youtube.com/shorts/Irn_6tw7DuE",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Семья поддержала 🤣 #shorts - YouTube",
+                "url": "https://www.youtube.com/shorts/a--hVhVOlF0",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) #illustration#art #pov#digitalart#procreate#tattoo - YouTube",
+                "url": "https://www.youtube.com/shorts/E9vI9y3CY38",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/a--hVhVOlF0",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Компьютер для учёбы - YouTube",
+                "url": "https://www.youtube.com/shorts/Irn_6tw7DuE",
+                "time": "08:47",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) антиматерия чтоли попалась #майнкрафт #minecraft #мем #shorts #meme #майн #viral - YouTube",
+                "url": "https://www.youtube.com/shorts/BjQTUkuIW5Y",
+                "time": "08:46",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) антиматерия чтоли попалась #майнкрафт #minecraft #мем #shorts #meme #майн #viral - YouTube",
+                "url": "https://www.youtube.com/shorts/W9_T-YGsd4o",
+                "time": "08:46",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) 😏Дрисс Поставил Наглеца На Место В Своём Стиле #shorts - YouTube",
+                "url": "https://www.youtube.com/shorts/wGgOJ7KqVPw",
+                "time": "08:46",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Я прощаю тебя 🥺 - YouTube",
+                "url": "https://www.youtube.com/shorts/V1SIHhrJ0Ko",
+                "time": "08:44",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/NL8E-HZbGeY",
+                "time": "08:44",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) #мем #подпишись #посмеяться #хочуврек #прикол #кружки - YouTube",
+                "url": "https://www.youtube.com/shorts/JGHElTQDVY0",
+                "time": "08:44",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Как одной настройкой прокачать внешний вид 3д-печати? #3dprinting #3дпечать - YouTube",
+                "url": "https://www.youtube.com/shorts/sT_vkmtiV94",
+                "time": "08:41",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/h3dKF7aKcN8",
+                "time": "08:40",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) JAVA: Как Язык для Тостеров Стал Угрозой Microsoft - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "08:40",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Как взламывают вайбкодеров? Вся БАЗА ПО БЕЗОПАСНОСТИ агентного программирования 2026 - YouTube",
+                "url": "https://www.youtube.com/watch?v=b1CAZgcd_HM",
+                "time": "08:14",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/watch?v=sl5rGSm3Wmk",
+                "time": "07:59",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Не Сдавайся! 🫠 - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "07:59",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Сколько я заработал на ВПН - YouTube",
+                "url": "https://www.youtube.com/shorts/JHEAtZ2ExIg",
+                "time": "07:57",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) огромный торговый автомат в майнкрафте - YouTube",
+                "url": "https://www.youtube.com/shorts/Md9sUWJKpd0",
+                "time": "07:57",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) Сколько я заработал на ВПН - YouTube",
+                "url": "https://www.youtube.com/shorts/3HhKnXliRPM",
+                "time": "07:57",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) огромный торговый автомат в майнкрафте - YouTube",
+                "url": "https://www.youtube.com/shorts/Md9sUWJKpd0",
+                "time": "07:56",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "(184) YouTube",
+                "url": "https://www.youtube.com/shorts/3HhKnXliRPM",
+                "time": "07:55",
+                "favicon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABhklEQVQ4ja3TsWpVQRAG4G/2nGsMQkBjJYkmdoogRlOI4Bv4AHa+gZVPEWvBxsLWhxAJIhgsBLENmlSBaBAlxnvPrsWem3uvlQYHltldZnb/mf+fgEIgqX7Kbvbnd2X2XkEOyjj5RFaIqJtry5xaJ5+jOUOeR0s0fWiHEemQ7gfpC7+2woedKNbukZ7hfA1O1UVUoMeIx5bHm33ygyjWXtHcpRsSqY8uDCuI1JCPk6KukmkGdJuJcpkuUxpKQkPXWr3UGgwG8reBlFqincSUpubESiIt1p9rP6QIvoeH98PLp9y+RT4IjoIUk/oiURYTTk/qixi/Y9Rx5zqbz3nxhJUlDImYZm0+/Tt5s9biJ+b7bhel1B/ahtfvebTBm7c90DlKnqbkMIobO8SF2vyI2uiO1WV298LwgLRQ5GJCYRnrb7cltmmWZmlsiu1PFWBamKIxehr1NI62W2xQrpD+EFLbK55ZtWdVoWWfeNxL+epF5tZJZ/EXUo6vHG2Fj5//1zCdfJx/A5xdillF8htqAAAAAElFTkSuQmCC"
+            },
+            {
+                "title": "youtube.com",
+                "url": "https://www.youtube.com/",
+                "time": "07:34",
+                "favicon": ""
+            },
+            {
+                "title": "google.com/search?q=обложка+игры&udm=2&sei=b-2zatCfG4-nhbIPyPDokAY",
+                "url": "https://www.google.com/search?q=обложка+игры&udm=2&sei=b-2zatCfG4-nhbIPyPDokAY",
+                "time": "19:17",
+                "favicon": ""
+            },
+            {
+                "title": "google.com/search?q=обложка+игры&udm=2",
+                "url": "https://www.google.com/search?q=обложка+игры&udm=2",
+                "time": "19:17",
+                "favicon": ""
+            },
+            {
+                "title": "YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "19:16",
+                "favicon": ""
+            },
+            {
+                "title": "youtube.com/?themeRefresh=1",
+                "url": "https://www.youtube.com/?themeRefresh=1",
+                "time": "19:16",
+                "favicon": ""
+            },
+            {
+                "title": "youtube.com",
+                "url": "https://www.youtube.com/",
+                "time": "19:16",
+                "favicon": ""
+            },
+            {
+                "title": "(116) YouTube",
+                "url": "https://www.youtube.com/shorts/mOjXCvZufsQ",
+                "time": "16:15"
+            },
+            {
+                "title": "(116) Переиграл систему спидрана Майнкрафта - YouTube",
+                "url": "https://www.youtube.com/shorts/sngfQvyXr0w",
+                "time": "16:15"
+            },
+            {
+                "title": "(116) в каждом офисе есть эта легенда, которая держит в страхе весь офис 🤭❤️ - YouTube",
+                "url": "https://www.youtube.com/shorts/yczgsoKE8k8",
+                "time": "16:14"
+            },
+            {
+                "title": "(116) YouTube",
+                "url": "https://www.youtube.com/shorts/UVDZRG99H4k",
+                "time": "16:12"
+            },
+            {
+                "title": "(116) Я ПРЕВРАТИЛСЯ В ЗОМБИ НО ЖИТЕЛИ МНЕ ПОМОГЛИ В МАЙНКРАФТ | Компот Minecraft - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "16:12"
+            },
+            {
+                "title": "(116) YouTube",
+                "url": "https://www.youtube.com/watch?v=CKYIgHp64CM",
+                "time": "16:09"
+            },
+            {
+                "title": "youtube.com",
+                "url": "https://www.youtube.com/",
+                "time": "16:09"
+            },
+            {
+                "title": "tumo.org",
+                "url": "https://tumo.org/",
+                "time": "16:08"
+            },
+            {
+                "title": "(107) Սուպերմարկետ, Սերիա 1 / Supermarket - YouTube",
+                "url": "https://www.youtube.com/watch?v=vx08ZoDRC88&t=13s",
+                "time": "20:41"
+            },
+            {
+                "title": "(107) Սուպերմարկետ, Սերիա 1 / Supermarket - YouTube",
+                "url": "https://www.youtube.com/watch?v=StJwLOk3mV8",
+                "time": "20:41"
+            },
+            {
+                "title": "(107) Մամայի Բալա 2, Սերիա 3, Երկուշաբթի 20:50 / Mamayi Bala - YouTube",
+                "url": "https://www.youtube.com/watch?v=vx08ZoDRC88&t=13s",
+                "time": "20:28"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/watch?v=vOTfmvpKwR0",
+                "time": "20:27"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "20:27"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/shorts/tRi-0QcD7Kc",
+                "time": "20:26"
+            },
+            {
+                "title": "(107) Все отмененные игры Valve, о которых вы не знали - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "20:25"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/watch?v=S1OcpVcia9I",
+                "time": "20:25"
+            },
+            {
+                "title": "(107) САМАЯ СЛОЖНАЯ ВЕЩЬ В МИРЕ / Как производят процессоры? - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "20:22"
+            },
+            {
+                "title": "(107) Почему Android везде? История гениального плана Google, который изменил мобильную индустрию - YouTube",
+                "url": "https://www.youtube.com/watch?v=gQFa44L9PGQ",
+                "time": "20:22"
+            },
+            {
+                "title": "(107) История просмотра - YouTube",
+                "url": "https://www.youtube.com/watch?v=_VtDfX9u_c4&t=98s",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) G3 - YouTube",
+                "url": "https://www.youtube.com/feed/history",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/@G3goev-g3iii6o6u",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) Подписки - YouTube",
+                "url": "https://www.youtube.com/feed/you",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) Подписки - YouTube",
+                "url": "https://www.youtube.com/feed/subscriptions",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) Подписки - YouTube",
+                "url": "https://www.youtube.com/feed/you",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/feed/subscriptions",
+                "time": "19:45"
+            },
+            {
+                "title": "(107) Почему Android везде? История гениального плана Google, который изменил мобильную индустрию - YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "19:44"
+            },
+            {
+                "title": "(107) История Хризалиды - Часть 3 - YouTube",
+                "url": "https://www.youtube.com/watch?v=_VtDfX9u_c4",
+                "time": "19:42"
+            },
+            {
+                "title": "(107) YouTube",
+                "url": "https://www.youtube.com/watch?v=XzX5qbN5Yf4",
+                "time": "19:34"
+            },
+            {
+                "title": "youtube.com",
+                "url": "https://www.youtube.com/",
+                "time": "19:34"
+            },
+            {
+                "title": "Google Gemini",
+                "url": "https://gemini.google.com/app/f2d7c40c7b1a1730",
+                "time": "19:33"
+            },
+            {
+                "title": "‎Google Gemini",
+                "url": "https://gemini.google.com/app",
+                "time": "19:33"
+            },
+            {
+                "title": "gemini.google.com",
+                "url": "https://gemini.google.com/",
+                "time": "19:33"
+            },
+            {
+                "title": "(104) #игра #угадай #игры #лайфстайл #game - YouTube",
+                "url": "https://www.youtube.com/shorts/tZfo7uAZFH4",
+                "time": "14:15"
+            },
+            {
+                "title": "(104) Pov: Лучший Друг Узнал что Ты Человек Паук😃 - YouTube",
+                "url": "https://www.youtube.com/shorts/6SIQF4A_8Rs",
+                "time": "14:15"
+            },
+            {
+                "title": "(104) Когда мама всегда на твоей стороне #юмор #прикол - YouTube",
+                "url": "https://www.youtube.com/shorts/tZfo7uAZFH4",
+                "time": "14:13"
+            },
+            {
+                "title": "(104) Минусы Жить В Моей Семье... автор: mikeeva_eva - YouTube",
+                "url": "https://www.youtube.com/shorts/abEAg9Ly4UU",
+                "time": "14:11"
+            },
+            {
+                "title": "(104) Are these the BEST Magic Tricks? 😱📱 - YouTube",
+                "url": "https://www.youtube.com/shorts/vI9NZfXaj8s",
+                "time": "14:10"
+            },
+            {
+                "title": "(104) YouTube",
+                "url": "https://www.youtube.com/shorts/Aljl-xbulX4",
+                "time": "14:09"
+            },
+            {
+                "title": "YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "14:09"
+            },
+            {
+                "title": "youtube.com/?themeRefresh=1",
+                "url": "https://www.youtube.com/?themeRefresh=1",
+                "time": "14:09"
+            },
+            {
+                "title": "YouTube",
+                "url": "https://accounts.google.com/v3/signin/challenge/pwd?TL=ACv9tzFC_Z-fkH8wpHNPLgndv_xdKz0zFWuELQwxEwJwIIIa7GL9QFkrkmY6mc3R&checkConnection=youtube%3A684&checkedDomains=youtube&cid=1&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F%253FthemeRefresh%253D1&dsh=S1594340321%3A1789207714157483&ec=65620&flowEntry=ServiceLogin&flowName=GlifWebSignIn&hl=en-GB&pstMsg=1&service=youtube",
+                "time": "14:08"
+            },
+            {
+                "title": "accounts.google.com/v3/signin/identifier?continue=https://www.youtube.com/signin?action_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F%253FthemeRefresh%253D1&ec=65620&hl=en-GB&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S1594340321:1789207714157483",
+                "url": "https://accounts.google.com/v3/signin/identifier?continue=https://www.youtube.com/signin?action_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F%253FthemeRefresh%253D1&ec=65620&hl=en-GB&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S1594340321:1789207714157483",
+                "time": "14:08"
+            },
+            {
+                "title": "YouTube",
+                "url": "https://www.youtube.com/",
+                "time": "14:08"
+            },
+            {
+                "title": "youtube.com/?themeRefresh=1",
+                "url": "https://www.youtube.com/?themeRefresh=1",
+                "time": "14:08"
+            },
+            {
+                "title": "youtube.com",
+                "url": "https://www.youtube.com/",
+                "time": "14:08"
+            },
+            {
+                "title": "google.com/search?sca_esv=6b76b0b817a23795&q=ՈՒԵՖԱ+Չեմպիոնների+լիգա+2026&oi=ddle&noiga=1&ct=460196844&hl=hy&si=APenkKnxxBAKu8uEyVJp5QG7kNERIzt0EhsYdVrbw5Is3icMpox4grxSDpBmV9URNmqKdDf_WEdr5evyStodq_yyrjRGb0Hn7GAVGG4xl7pKRjPgcNT2R8cD9jydolC7yYgFBm0ek0DG4rW_KdzoNRXldl0wF3IPoUkdMJGy-LyxNTr7tuPYf0S7em_xbzeYOB1DOjw_CPYK8bIHNQ_ozbmL4CdSj38Cqw%3D%3D&sa=X&ved=0ahUKEwiF75zS9N6WAxWSzwIHHZi1AXAQPQgF&biw=1898&bih=788&dpr=1",
+                "url": "https://www.google.com/search?sca_esv=6b76b0b817a23795&q=ՈՒԵՖԱ+Չեմպիոնների+լիգա+2026&oi=ddle&noiga=1&ct=460196844&hl=hy&si=APenkKnxxBAKu8uEyVJp5QG7kNERIzt0EhsYdVrbw5Is3icMpox4grxSDpBmV9URNmqKdDf_WEdr5evyStodq_yyrjRGb0Hn7GAVGG4xl7pKRjPgcNT2R8cD9jydolC7yYgFBm0ek0DG4rW_KdzoNRXldl0wF3IPoUkdMJGy-LyxNTr7tuPYf0S7em_xbzeYOB1DOjw_CPYK8bIHNQ_ozbmL4CdSj38Cqw%3D%3D&sa=X&ved=0ahUKEwiF75zS9N6WAxWSzwIHHZi1AXAQPQgF&biw=1898&bih=788&dpr=1",
+                "time": "15:46"
+            },
+            {
+                "title": "google.com",
+                "url": "https://www.google.com/",
+                "time": "15:46"
+            },
+            {
+                "title": "start_page.html",
+                "url": "https://www.google.com",
+                "time": "15:46"
+            },
+            {
+                "title": "google.com/search?q=Portal+Remastered&udm=2&sei=W_WfaufKEcXVp84P3ZOmkAM",
+                "url": "https://www.google.com/search?q=Portal+Remastered&udm=2&sei=W_WfaufKEcXVp84P3ZOmkAM",
+                "time": "15:45"
+            },
+            {
+                "title": "google.com/search?q=Portal+Remastered&udm=2",
+                "url": "https://www.google.com/search?q=Portal+Remastered&udm=2",
+                "time": "15:45"
+            }
+        ],
+        "settings": {
+            "theme_color": "#4c6ef5",
+            "top_bar_color": "#16171a",
+            "font_family": "Verdana",
+            "search_engine": "Yandex",
+            "show_clock": false,
+            "show_title": false,
+            "show_todo": false,
+            "ui_opacity": 0.9,
+            "bg_image": "",
+            "brand_text": "GOR // Oo",
+            "bg_data": "",
+            "bg_type": "",
+            "bg_blur": 0,
+            "bg_interactive": false,
+            "active_engine_idx": 0,
+            "custom_engines": [],
+            "adblock_last_update": "2026-10-25T07:39:40.355787"
+        },
+        "session": {
+            "active": true,
+            "tabs": []
+        },
+        "now_playing": {
+            "name": "Jumpino",
+            "icon": "F:/fails/Foto_video/Games/Jumpino.png",
+            "started": "2026-10-25T08:05:22.907945",
+            "wiki_url": "",
+            "forum_url": "",
+            "discord_url": ""
+        },
+        "tab_groups": [
+            {
+                "id": "grp_1792208096607",
+                "name": "test",
+                "color": "#4c6ef5",
+                "emoji": "🗂️",
+                "urls": [
+                    "https://www.youtube.com/"
+                ],
+                "created": "2026-10-17 07:34"
+            },
+            {
+                "id": "grp_1792212660914",
+                "name": "test",
+                "color": "#ffff7f",
+                "emoji": "😡",
+                "urls": [
+                    "https://www.youtube.com/shorts/ouWwPBNOwu0",
+                    "https://github.com/"
+                ],
+                "created": "2026-10-17 08:51"
+            }
+        ]
+    },
+    "big_picture": {
+        "last_tab": 0
+    }
+}

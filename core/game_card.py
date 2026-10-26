@@ -27,6 +27,7 @@ from PyQt6.QtGui import QDrag, QAction
 from launcher_utils import NO_WINDOW_FLAGS, load_pixmap_cached, universal_launch
 from process_monitor import ProcessMonitor
 from lang_loader import tr
+from platform_utils import is_game_process, launch_unix, kill_process_tree
 
 
 class GameCard(QFrame):
@@ -267,7 +268,7 @@ class GameCard(QFrame):
                             creationflags=NO_WINDOW_FLAGS
                         )
                     else:
-                        self.active_process.terminate()
+                        kill_process_tree(self.active_process)
                 except Exception as e:
                     print(f"Ошибка принудительного закрытия процесса: {e}")
             
@@ -297,7 +298,7 @@ class GameCard(QFrame):
             except Exception:
                 pass
             path = self.game_data['path']
-            if path.lower().endswith(('.exe', '.bat')):
+            if is_game_process(path):
                 full_path = os.path.abspath(path)
                 working_dir = os.path.dirname(full_path)
                 args = self.game_data.get('args', '')
@@ -308,10 +309,18 @@ class GameCard(QFrame):
                     pass
                 start_t = time.time()
                 
-                cmd_list = [full_path]
-                if args:
-                    cmd_list.extend(shlex.split(args))
-                self.active_process = subprocess.Popen(cmd_list, cwd=working_dir)
+                if platform.system() == 'Windows':
+                    # shlex.split (POSIX-режим) съедает обратные слэши в путях
+                    # аргументов ("-cfg C:\\Games\\x.ini" -> "C:Gamesx.ini").
+                    # В Windows командная строка - это одна строка, поэтому
+                    # собираем её как есть, сохраняя кавычки пользователя.
+                    cmd = subprocess.list2cmdline([full_path])
+                    if args:
+                        cmd += " " + args
+                    self.active_process = subprocess.Popen(cmd, cwd=working_dir)
+                else:
+                    # Linux/macOS: нативные файлы напрямую, .exe/.bat - через Wine/Proton
+                    self.active_process = launch_unix(path, args)
                 
                 self.is_running = True
                 self.run_btn.setText(tr("game_card.stop"))
@@ -323,7 +332,12 @@ class GameCard(QFrame):
                 self.game_timer.start(1000)
 
                 self.monitor = ProcessMonitor(self.active_process, start_t, self.game_data)
-                self.monitor.finished_playing.connect(self.on_game_finished)
+                if hasattr(self.parent_launcher, "track_game_monitor"):
+                    # обработчик конца сессии живёт в лаунчере и переживает
+                    # пересоздание карточек (см. GORLauncher.track_game_monitor)
+                    self.parent_launcher.track_game_monitor(self.monitor)
+                else:
+                    self.monitor.finished_playing.connect(self.on_game_finished)
                 self.monitor.start()
 
                 gid = self.game_data.get('id') or self.game_data['name']
@@ -388,8 +402,18 @@ class GameCard(QFrame):
         else:
             super().mouseDoubleClickEvent(e)
 
+    def mousePressEvent(self, e):
+        if e.button() == Qt.MouseButton.LeftButton:
+            self._drag_start_pos = e.position().toPoint()
+        super().mousePressEvent(e)
+
     def mouseMoveEvent(self, e):
         if e.buttons() == Qt.MouseButton.LeftButton:
+            # Без порога любое дрожание мыши при двойном клике запускало
+            # модальный drag и "съедало" запуск игры.
+            start = getattr(self, "_drag_start_pos", None)
+            if start is not None and (e.position().toPoint() - start).manhattanLength() < QApplication.startDragDistance():
+                return
             drag = QDrag(self); mime = QMimeData()
             mime.setText(self.game_data.get('id') or self.game_data['name'])
             drag.setMimeData(mime); drag.exec(Qt.DropAction.MoveAction)

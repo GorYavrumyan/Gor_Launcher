@@ -44,8 +44,11 @@ def _matches(doc, where):
     for key, cond in where.items():
         val = doc.get(key)
         if isinstance(cond, dict) and cond and all(k in _OPS for k in cond):
-            if not all(_OPS[op](val, arg) for op, arg in cond.items()):
-                return False
+            try:
+                if not all(_OPS[op](val, arg) for op, arg in cond.items()):
+                    return False
+            except TypeError:
+                return False   # несравнимые типы (число vs строка и т.п.) - условие не выполнено
         elif val != cond:
             return False
     return True

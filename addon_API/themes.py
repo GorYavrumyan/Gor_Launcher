@@ -187,8 +187,9 @@ def _write_state(st):
         _acc.set_pref("theme", st, name)
         return
     os.makedirs(THEMES_DIR, exist_ok=True)
+    text = json.dumps(st, ensure_ascii=False, indent=2)   # до открытия файла: не обрезаем его при ошибке
     with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(st, f, ensure_ascii=False, indent=2)
+        f.write(text)
 
 
 def _own_themes_dir():
@@ -537,7 +538,11 @@ class ThemeManager:
         os.makedirs(base, exist_ok=True)
         if os.path.isdir(path):
             tid = os.path.basename(path.rstrip("/\\"))
+            if not tid or tid in (".", ".."):
+                raise ValueError(f"Не удалось определить имя темы по пути: {path!r}")
             dst = os.path.join(base, tid)
+            if os.path.abspath(dst) == os.path.abspath(path):
+                return tid   # импорт папки из самой себя: rmtree удалил бы источник
             if os.path.exists(dst):
                 shutil.rmtree(dst)
             shutil.copytree(path, dst)
@@ -550,6 +555,10 @@ class ThemeManager:
         """Удалить тему. Свои темы аккаунта удаляются свободно; общие (themes/) защищены от удаления
         из-под аккаунта - они нужны остальным (без системы аккаунтов удаляются как раньше)."""
         if theme_id == DEFAULT_THEME_ID:
+            return False
+        # id приходит и от аддонов: "../что-то" привело бы к rmtree за пределами папки тем
+        if not theme_id or theme_id in (".", "..") or os.path.basename(theme_id) != theme_id \
+                or "/" in theme_id or "\\" in theme_id:
             return False
         bases = [_acc.themes_dir()] if _acc.active_name() else [THEMES_DIR]
         removed = False

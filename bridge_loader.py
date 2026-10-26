@@ -9,6 +9,18 @@ for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras", "GOR
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
+# Весь проект использует относительные пути ("games_data.json", "covers/",
+# "version.json"...), то есть рассчитывает на cwd = корень проекта. Запуск из
+# другой папки (ярлык без "Рабочей папки", терминал) приводил к падению или к
+# чтению/созданию данных не там. Фиксируем cwd; argv[0] делаем абсолютным ДО
+# смены папки, иначе модули, считающие корень от sys.argv[0], ошибутся.
+try:
+    if os.path.isfile(sys.argv[0]):
+        sys.argv[0] = os.path.abspath(sys.argv[0])
+    os.chdir(_PROJECT_ROOT)
+except OSError:
+    pass
+
 import sys
 import os
 import importlib.util
@@ -151,6 +163,9 @@ def restart_launcher(confirm=True, account=None):
 
     if account:
         cmd = cmd + ["--account", account]
+    # старый процесс ещё жив и занимает "гнездо" единственного экземпляра - новый не должен
+    # принять его за работающий лаунчер и отдать ему команду (см. shared/single_instance.py)
+    cmd = cmd + ["--new-instance"]
 
     try:
         creationflags = 0
@@ -342,7 +357,7 @@ def add_account_button(launcher, account_name):
     btn.setIcon(QIcon(circular_avatar(account_name, 32)))
     btn.setIconSize(QSize(30, 30))
     btn.setFixedSize(38, 38)
-    btn.setToolTip(f"Аккаунт: {account_name}")
+    btn.setToolTip(tr("account_btn.tooltip", name=account_name))
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.setStyleSheet("QPushButton { background: transparent; border-radius: 19px; } "
                        "QPushButton:hover { background: rgba(255,255,255,0.08); }")
@@ -450,6 +465,16 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     apply_global_style(app)
 
+    # Уже запущен другой экземпляр лаунчера? Тогда не открываем второй (оба писали бы в один
+    # games_data.json), а передаём ему команду. Для запуска из Sunshine ("--bigpicture")
+    # этот процесс остаётся жить, пока в основном экземпляре открыт Big Picture: стрим живёт,
+    # пока жив запущенный Sunshine процесс.
+    from single_instance import forward_to_running, SingleInstanceServer
+    if "--new-instance" not in sys.argv:
+        _remote_cmd = "bigpicture" if "--bigpicture" in sys.argv else "show"
+        if forward_to_running(_PROJECT_ROOT, _remote_cmd, wait_for_close=(_remote_cmd == "bigpicture")):
+            sys.exit(0)
+
     # --------------------------------------------------------------- #
     # Выбор аккаунта. До этого момента ничего не читает и не пишет
     # games_data.json / GOR_Profile / addons - см. shared/account_manager.py
@@ -490,6 +515,17 @@ if __name__ == "__main__":
     add_restart_button(launcher)
     add_account_button(launcher, active_account)
     add_tray_button(launcher)
-    launcher.show()
+
+    _instance_server = SingleInstanceServer(_PROJECT_ROOT, launcher)
+    _instance_server.command.connect(launcher.on_remote_command)
+    _instance_server.listen()
+
+    if "--bigpicture" in sys.argv:
+        # Запуск сразу в режиме Big Picture (удобно для автозагрузки на ТВ/HTPC):
+        # обычное окно лаунчера не показываем, вернуться в него можно из меню режима.
+        from PyQt6.QtCore import QTimer as _QTimer
+        _QTimer.singleShot(0, launcher.open_big_picture)
+    else:
+        launcher.show()
     check_updates_in_background(launcher)
     sys.exit(app.exec())

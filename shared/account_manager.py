@@ -45,6 +45,11 @@ import shutil
 import hashlib
 import subprocess
 import platform
+import re
+import time
+
+from safe_json import read_json, write_json_inplace
+from platform_utils import make_dir_link
 
 NO_WINDOW_FLAGS = subprocess.CREATE_NO_WINDOW if platform.system() == "Windows" else 0
 
@@ -81,7 +86,33 @@ def get_accounts_dir():
 
 
 def get_account_dir(name):
-    return os.path.join(get_accounts_dir(), name)
+    accounts_dir = os.path.abspath(get_accounts_dir())
+    path = os.path.abspath(os.path.join(accounts_dir, name))
+    # Папка аккаунта обязана лежать ПРЯМО в accounts/. Имя ".." указывало бы на
+    # корень проекта, а delete_account делает rmtree по этому пути.
+    if os.path.dirname(path) != accounts_dir:
+        raise ValueError(f"Недопустимое имя аккаунта: {name!r}")
+    return path
+
+
+_RESERVED_WIN_NAMES = {"con", "prn", "aux", "nul"} | {f"com{i}" for i in range(1, 10)} | {f"lpt{i}" for i in range(1, 10)}
+
+
+def validate_account_name(name):
+    """Возвращает текст ошибки или None, если имя годится для папки аккаунта."""
+    if not name:
+        return "Имя аккаунта не может быть пустым"
+    if any(c in name for c in '\\/:*?"<>|') or any(ord(c) < 32 for c in name):
+        return "Имя аккаунта содержит запрещённые символы"
+    if name in (".", "..") or name.endswith((".", " ")):
+        return "Имя аккаунта не может быть '.', '..' или оканчиваться точкой/пробелом"
+    if len(name) > 64:
+        return "Имя аккаунта слишком длинное (максимум 64 символа)"
+    if name.split(".")[0].lower() in _RESERVED_WIN_NAMES:
+        return "Это имя зарезервировано системой"
+    if name.lower() == INDEX_FILENAME.lower():
+        return "Это имя зарезервировано"
+    return None
 
 
 def _index_path():
@@ -93,21 +124,19 @@ def _index_path():
 # --------------------------------------------------------------------- #
 def _load_index():
     path = _index_path()
-    if not os.path.exists(path):
-        return {"accounts": {}, "last_active": None}
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        data.setdefault("accounts", {})
-        data.setdefault("last_active", None)
-        return data
-    except Exception:
-        return {"accounts": {}, "last_active": None}
+    # read_json не теряет индекс молча: при повреждении пробует .bak, иначе
+    # откладывает битый файл в .corrupt-* (в индексе хэши паролей и список аккаунтов).
+    data = read_json(path, lambda: {"accounts": {}, "last_active": None})
+    if not isinstance(data, dict):
+        data = {"accounts": {}, "last_active": None}
+    if not isinstance(data.get("accounts"), dict):
+        data["accounts"] = {}
+    data.setdefault("last_active", None)
+    return data
 
 
 def _save_index(data):
-    with open(_index_path(), "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    write_json_inplace(_index_path(), data, indent=2)
 
 
 def list_accounts():
@@ -168,9 +197,12 @@ def create_account(name, password="", language=None):
     name = (name or "").strip()
     if not name:
         return False, "Имя аккаунта не может быть пустым"
-    if any(c in name for c in '\\/:*?"<>|'):
-        return False, "Имя аккаунта содержит запрещённые символы"
-    if account_exists(name):
+    err = validate_account_name(name)
+    if err:
+        return False, err
+    # Windows не различает регистр в именах папок: "Vova" и "vova" - одна папка,
+    # и удаление одного аккаунта снесло бы данные другого.
+    if any(n.lower() == name.lower() for n in _load_index()["accounts"]):
         return False, "Аккаунт с таким именем уже существует"
 
     idx = _load_index()
@@ -202,9 +234,13 @@ def delete_account(name):
         return False, "Аккаунт не найден"
     if idx.get("last_active") == name:
         return False, "Нельзя удалить текущий активный аккаунт"
+    try:
+        acc_dir = get_account_dir(name)   # бросит ValueError для "..", "." и т.п.
+    except ValueError as e:
+        return False, str(e)
     del idx["accounts"][name]
     _save_index(idx)
-    shutil.rmtree(get_account_dir(name), ignore_errors=True)
+    shutil.rmtree(acc_dir, ignore_errors=True)
     return True, None
 
 
@@ -228,6 +264,12 @@ def _unlink_dir_point(path):
     """Снимает junction (или удаляет пустую папку) по пути `path`, не
     трогая то, на что она указывала. Возвращает True, если по пути
     осталась НАСТОЯЩАЯ директория с данными (значит — требуется миграция)."""
+    if os.path.islink(path):          # Linux/macOS: симлинк (в т.ч. битый) - просто снимаем
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+        return False
     if not os.path.isdir(path):
         return False
     try:
@@ -246,9 +288,18 @@ def _link_dir(link_path, target_dir):
         if not os.listdir(target_dir):
             for item in os.listdir(link_path):
                 shutil.move(os.path.join(link_path, item), os.path.join(target_dir, item))
-        shutil.rmtree(link_path, ignore_errors=True)
+            shutil.rmtree(link_path, ignore_errors=True)
+        else:
+            # И в корне, и в аккаунте уже есть данные. Раньше папку в корне
+            # молча удаляли (rmtree) - теперь откладываем в сторону, ничего не теряя.
+            aside = f"{link_path}.orphan-{time.strftime('%Y%m%d-%H%M%S')}"
+            try:
+                os.rename(link_path, aside)
+                print(f"[account_manager] {link_path} не пуста; сохранена как {aside}")
+            except OSError as e:
+                print(f"[account_manager] Не удалось отложить {link_path}: {e}")
 
-    ok = _run_mklink(["/J", link_path, target_dir])
+    ok = make_dir_link(link_path, target_dir)
     if not ok:
         # Резервный вариант, если junction почему-то не создался (не NTFS
         # и т.п.) — обычная копия. Хуже (не живая ссылка), но не ломает запуск.
@@ -257,7 +308,33 @@ def _link_dir(link_path, target_dir):
     return ok
 
 
+def _preserve_real_file(link_path, target_file):
+    """В корне лежит НАСТОЯЩИЙ файл (не ссылка), а у аккаунта уже есть свой.
+    Так бывает, когда жёсткая ссылка разорвана (файл подменили через
+    rename/копирование) или на дисках без hardlink. Раньше файл в корне просто
+    удалялся - вместе со всеми изменениями. Теперь: если он новее - его
+    содержимое становится данными аккаунта (старые сохраняются в .bak-*),
+    иначе он откладывается в .orphan-*."""
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    try:
+        newer = os.path.getmtime(link_path) > os.path.getmtime(target_file)
+        valid = os.path.getsize(link_path) > 2
+        if newer and valid:
+            shutil.copyfile(target_file, f"{target_file}.bak-{stamp}")
+            shutil.copyfile(link_path, target_file)   # на месте: inode аккаунта сохраняется
+            print(f"[account_manager] {link_path} новее данных аккаунта - перенесён в аккаунт (старые: .bak-{stamp})")
+        else:
+            shutil.copyfile(link_path, f"{link_path}.orphan-{stamp}")
+    except OSError as e:
+        print(f"[account_manager] Не удалось сохранить {link_path}: {e}")
+
+
 def _link_file(link_path, target_file):
+    try:
+        if os.path.exists(link_path) and os.path.exists(target_file) and os.path.samefile(link_path, target_file):
+            return True   # уже жёсткая ссылка на этот файл - не трогаем
+    except OSError:
+        pass
     if not os.path.exists(target_file):
         # ещё нет данных аккаунта — либо усыновляем то, что лежит в корне
         # (если это реальный файл, не общая ссылка), либо создаём пустой
@@ -276,6 +353,12 @@ def _link_file(link_path, target_file):
             with open(target_file, "w", encoding="utf-8") as f:
                 json.dump({}, f)
     elif os.path.exists(link_path):
+        try:
+            nlink = os.stat(link_path).st_nlink
+        except OSError:
+            nlink = 1
+        if nlink <= 1:
+            _preserve_real_file(link_path, target_file)
         try:
             os.remove(link_path)
         except OSError:
@@ -344,8 +427,7 @@ def _apply_account_preferences(name, root, acc_dir):
                     data = json.load(f)
                 if isinstance(data, dict) and data.get("language") != prefs["language"]:
                     data["language"] = prefs["language"]
-                    with open(data_path, "w", encoding="utf-8") as f:
-                        json.dump(data, f, indent=4, ensure_ascii=False)
+                    write_json_inplace(data_path, data)
             except Exception as e:
                 print(f"[account_manager] Не удалось синхронизировать язык: {e}")
 

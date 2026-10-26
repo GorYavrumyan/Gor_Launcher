@@ -20,8 +20,12 @@ class AddonSettings:
         return self._data
 
     def _save(self):
+        # Сначала сериализуем: если значение не JSON-совместимо, файл не трогаем
+        # (раньше он обрезался на полуслове, и при следующей загрузке ВСЕ
+        # настройки аддона сбрасывались в пустые).
+        text = json.dumps(self._data, ensure_ascii=False, indent=2)
         with open(self._path, "w", encoding="utf-8") as f:
-            json.dump(self._data, f, ensure_ascii=False, indent=2)
+            f.write(text)
 
     def get(self, key, default=None):
         data = self._load()
@@ -30,8 +34,19 @@ class AddonSettings:
         return self._defaults.get(key, default)
 
     def set(self, key, value):
-        self._load()[key] = value
-        self._save()
+        data = self._load()
+        had, old = key in data, data.get(key)
+        data[key] = value
+        try:
+            self._save()
+        except (TypeError, ValueError):
+            # откат: иначе несериализуемое значение осталось бы в памяти и
+            # ломало бы каждое следующее сохранение
+            if had:
+                data[key] = old
+            else:
+                data.pop(key, None)
+            raise
 
     def all(self):
         merged = dict(self._defaults)

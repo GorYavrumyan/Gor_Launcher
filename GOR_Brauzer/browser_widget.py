@@ -56,7 +56,7 @@ from browser_passwords import PasswordVault
 from lang_loader import tr
 from browser_translate import install_vot_translator
 from browser_groups import GroupsPanel, TAB_GROUP_COLORS, GroupedTabBar, group_display_name, group_emoji
-from browser_broadcast import GorBroadcastService, BroadcastToast
+from browser_broadcast import GorBroadcastService, BroadcastToast, is_safe_web_url
 
 # Порог (мс), после которого вкладка, всё ещё грузящаяся, помечается
 # как "не отвечает" (⚠) - см. _check_not_responding().
@@ -232,6 +232,13 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
         install_vot_translator(self.profile, base_dir, self.settings.get("vot_enabled", True))
 
         self.incognito_profile = QWebEngineProfile(self)
+        # Приватный профиль раньше оставался БЕЗ блокировщика рекламы/трекеров
+        # (интерцептор и косметический фильтр ставились только на обычный) -
+        # а именно в приватных вкладках от трекинга ждут защиты не меньше.
+        self.adblock_interceptor_incognito = GorAdBlockInterceptor(self)
+        self.adblock_interceptor_incognito.set_enabled(self.settings.get("adblock_enabled", True))
+        self.incognito_profile.setUrlRequestInterceptor(self.adblock_interceptor_incognito)
+        install_cosmetic_filter(self.incognito_profile, self.settings.get("adblock_enabled", True))
         self.bookmarks = self.load_data(BOOKMARKS_FILE)
         self.history = self.load_data(HISTORY_FILE)
         # Сохранённые группы вкладок (см. browser_groups.py) - хранятся в
@@ -335,16 +342,25 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
     # Хранение данных (games_data.json, блок "browser")
     # ------------------------------------------------------------------
 
-    def _read_full_data(self):
-        """Читает целиком games_data.json лаунчера (groups/standalone/history/browser)."""
+    def _read_full_data(self, strict=False):
+        """Читает целиком games_data.json лаунчера (groups/standalone/history/browser).
+
+        strict=True: если файл существует, но прочитать его не удалось (его в
+        этот момент пишет другой процесс - редактор игры, например), возвращает
+        None, а не {}. Иначе save_data() записывал бы поверх файла почти пустой
+        словарь и стирал бы всю библиотеку игр."""
         if os.path.exists(DATA_FILE):
-            try:
-                with open(DATA_FILE, "r", encoding="utf-8") as file:
-                    data = json.load(file)
+            for _ in range(4):
+                try:
+                    with open(DATA_FILE, "r", encoding="utf-8") as file:
+                        data = json.load(file)
                     if isinstance(data, dict):
                         return data
-            except Exception:
-                pass
+                except Exception:
+                    pass
+                time.sleep(0.05)
+            if strict:
+                return None
         return {}
 
     def load_data(self, key):
@@ -361,12 +377,19 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
         """Сохраняет под-раздел браузера обратно в общий games_data.json
         лаунчера, в блок "browser", не затрагивая данные игр/групп/истории
         запусков (они читаются и пишутся обратно как есть)."""
-        data = self._read_full_data()
+        data = self._read_full_data(strict=True)
+        if data is None:
+            print(f"[browser] {DATA_FILE} не удалось прочитать - '{key}' не сохранён (файл не тронут)")
+            return
         if not isinstance(data.get("browser"), dict):
             data["browser"] = {}
         data["browser"][key] = value
-        with open(DATA_FILE, "w", encoding="utf-8") as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
+        try:
+            from safe_json import write_json_inplace
+            write_json_inplace(DATA_FILE, data)
+        except ImportError:
+            with open(DATA_FILE, "w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
 
     # ------------------------------------------------------------------
     # Группы вкладок (browser_groups.py)
@@ -750,14 +773,26 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
         text = self._clipboard.text()
         if not text or not text.strip():
             return
+        # Флаг выше сбрасывается сразу после setText, а dataChanged на Windows
+        # приходит позже (сообщением ОС) - полученный из сети текст улетал обратно
+        # отправителю, и два ПК бесконечно гоняли буфер друг другу. Поэтому
+        # дополнительно помним сам принятый текст и пропускаем его один раз.
+        if text == getattr(self, "_last_net_clipboard", None):
+            self._last_net_clipboard = None
+            return
+        # Пароль, скопированный из менеджера паролей, нельзя рассылать по сети.
+        if text == getattr(self, "_clipboard_private_text", None):
+            return
         self.broadcast_service.send_clipboard(text)
 
     def _handle_incoming_clipboard(self, payload):
         if not self.settings.get("lan_clipboard_enabled", False):
             return  # фича выключена локально - молча игнорируем чужой буфер обмена
         text = payload.get("text", "")
-        if not text:
+        if not isinstance(text, str) or not text:
             return
+        text = text[:20000]   # пакет недоверенный: не даём забить буфер обмена гигантским текстом
+        self._last_net_clipboard = text
         self._suppress_clipboard_broadcast = True
         try:
             self._clipboard.setText(text)
@@ -786,12 +821,17 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
             return
         existing_urls = {bm.get("url") for bm in self.bookmarks}
         added = 0
-        for bm in incoming:
-            if not isinstance(bm, dict) or not bm.get("url"):
+        for bm in incoming[:500]:
+            # Закладки из сети недоверенные: только http(s) и строковые поля
+            # (раньше принималось что угодно - javascript:, file:// и нестроковые
+            # значения, ломавшие срез [:80] и сохранение).
+            if not isinstance(bm, dict) or not is_safe_web_url(bm.get("url")):
                 continue
             if bm["url"] in existing_urls:
                 continue  # не перетираем локальные закладки - только добавляем новые
-            self.bookmarks.append({"name": (bm.get("name") or bm["url"])[:80], "url": bm["url"]})
+            name = bm.get("name")
+            name = name if isinstance(name, str) and name else bm["url"]
+            self.bookmarks.append({"name": name[:80], "url": bm["url"]})
             existing_urls.add(bm["url"])
             added += 1
         if added:
@@ -1095,12 +1135,18 @@ class GORBrowser(QWidget):  # QWidget (не QMainWindow) для корректн
         app = QApplication.instance()
         if app is not None:
             app.setFont(QFont(font, font_size))
-        try:
-            web_settings = QWebEngineSettings.globalSettings()
-            web_settings.setFontFamily(QWebEngineSettings.FontFamily.StandardFont, font)
-            web_settings.setFontSize(QWebEngineSettings.FontSize.DefaultFontSize, font_size)
-        except Exception:
-            pass  # на некоторых сборках PyQt6-WebEngine globalSettings() может отсутствовать
+        # В Qt6 статического QWebEngineSettings.globalSettings() больше нет (это
+        # API Qt5) - раньше вызов падал, а try/except молча его глотал, и шрифт
+        # страниц не применялся никогда. Настройки живут у профилей.
+        for _prof in (getattr(self, "profile", None), getattr(self, "incognito_profile", None)):
+            if _prof is None:
+                continue
+            try:
+                web_settings = _prof.settings()
+                web_settings.setFontFamily(QWebEngineSettings.FontFamily.StandardFont, font)
+                web_settings.setFontSize(QWebEngineSettings.FontSize.DefaultFontSize, font_size)
+            except Exception as e:
+                print(f"[browser] Не удалось применить шрифт страниц: {e}")
 
         self.setStyleSheet(f"""
             QWidget {{ font-family: '{font}'; font-size: {font_size}pt; color: white; }}

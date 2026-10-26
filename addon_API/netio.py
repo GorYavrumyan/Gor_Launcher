@@ -84,15 +84,23 @@ class HttpAPI:
         def work():
             req = urllib.request.Request(url, headers={"User-Agent": _UA})
             os.makedirs(os.path.dirname(os.path.abspath(dest)), exist_ok=True)
-            with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest + ".part", "wb") as f:
-                state["total"] = int(resp.headers.get("Content-Length") or 0)
-                while True:
-                    chunk = resp.read(64 * 1024)
-                    if not chunk:
-                        break
-                    f.write(chunk)
-                    state["done"] += len(chunk)
-            os.replace(dest + ".part", dest)
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp, open(dest + ".part", "wb") as f:
+                    state["total"] = int(resp.headers.get("Content-Length") or 0)
+                    while True:
+                        chunk = resp.read(64 * 1024)
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        state["done"] += len(chunk)
+                os.replace(dest + ".part", dest)
+            except BaseException:
+                # не оставляем недокачанный .part на диске при обрыве/ошибке
+                try:
+                    os.remove(dest + ".part")
+                except OSError:
+                    pass
+                raise
             return dest
 
         timer = None

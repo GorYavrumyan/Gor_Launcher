@@ -162,18 +162,24 @@ def get_language():
 def set_language(code):
     """Сохраняет выбранный язык в games_data.json и сразу активирует его."""
     data = {"groups": {}, "standalone": [], "history": []}
+    can_write = True
     if os.path.exists(_DATA_FILE):
         try:
             with open(_DATA_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
+            if not isinstance(data, dict):
+                can_write = False
         except Exception:
-            pass
-    data["language"] = code
-    try:
-        with open(_DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        print(f"[lang_loader] Не удалось сохранить язык в {_DATA_FILE}: {e}")
+            # Файл не удалось прочитать - НЕ перезаписываем его почти пустой
+            # заготовкой (раньше так терялась вся библиотека игр).
+            can_write = False
+    if can_write:
+        data["language"] = code
+        try:
+            from safe_json import write_json_inplace
+            write_json_inplace(_DATA_FILE, data)
+        except Exception as e:
+            print(f"[lang_loader] Не удалось сохранить язык в {_DATA_FILE}: {e}")
     acc = _accounts()
     if acc is not None:                       # язык запоминается за аккаунтом
         try:

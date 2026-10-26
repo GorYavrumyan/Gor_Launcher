@@ -1,3 +1,7 @@
+try:
+    from lang_loader import tr
+except ImportError:
+    from shared.lang_loader import tr
 import sys
 import os
 import json
@@ -73,27 +77,27 @@ class CustomizationManager(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.setWindowTitle("Кастомизация GOR Browser")
+        self.setWindowTitle(tr("browser_custom.window_title"))
         self.setFixedSize(400, 550)
         self.setStyleSheet(f"background-color: #1c1d21; color: white; font-family: '{self.parent.settings.get('font_family', 'Segoe UI')}';")
         
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("🎨 Акцентный цвет (кнопки, часы):"))
-        self.btn_color = QPushButton("Выбрать акцент")
+        layout.addWidget(QLabel(tr("browser_custom.accent_color")))
+        self.btn_color = QPushButton(tr("browser_custom.select_accent"))
         self.current_accent = self.parent.settings.get("theme_color", "#4c6ef5")
         self.btn_color.setStyleSheet(f"background: {self.current_accent}; padding: 10px; border-radius: 5px; border: none;")
         self.btn_color.clicked.connect(self.pick_accent_color)
         layout.addWidget(self.btn_color)
 
-        layout.addWidget(QLabel("📟 Цвет верхней панели (TopBar):"))
-        self.btn_top_color = QPushButton("Выбрать цвет панели")
+        layout.addWidget(QLabel(tr("browser_custom.topbar_color")))
+        self.btn_top_color = QPushButton(tr("browser_custom.select_topbar"))
         self.current_top_color = self.parent.settings.get("top_bar_color", "#16171a")
         self.btn_top_color.setStyleSheet(f"background: {self.current_top_color}; padding: 10px; border-radius: 5px; border: 1px solid #444;")
         self.btn_top_color.clicked.connect(self.pick_top_color)
         layout.addWidget(self.btn_top_color)
 
         layout.addSpacing(10)
-        layout.addWidget(QLabel("🔤 Шрифт интерфейса:"))
+        layout.addWidget(QLabel(tr("browser_custom.ui_font")))
         self.font_combo = QComboBox()
         self.font_combo.addItems(["Segoe UI", "Roboto", "Arial", "Consolas", "Verdana", "Open Sans"])
         self.font_combo.setCurrentText(self.parent.settings.get("font_family", "Segoe UI"))
@@ -101,11 +105,11 @@ class CustomizationManager(QDialog):
         layout.addWidget(self.font_combo)
 
         layout.addSpacing(10)
-        layout.addWidget(QLabel("🖼️ Фон стартовой страницы:"))
+        layout.addWidget(QLabel(tr("browser_custom.bg_image")))
         bg_path = self.parent.settings.get("bg_image", "")
-        self.bg_path_label = QLabel(os.path.basename(bg_path) if bg_path else "Стандартный темный")
+        self.bg_path_label = QLabel(os.path.basename(bg_path) if bg_path else tr("browser_custom.default_dark"))
         self.bg_path_label.setStyleSheet("color: #888; font-size: 10px;")
-        btn_bg = QPushButton("Выбрать изображение")
+        btn_bg = QPushButton(tr("browser_custom.select_image"))
         btn_bg.setStyleSheet("background: #2c2e33; padding: 8px; border-radius: 5px;")
         btn_bg.clicked.connect(self.pick_background)
         layout.addWidget(btn_bg)
@@ -325,7 +329,12 @@ class DownloadItem(QWidget):
         # Открывает папку, где лежит файл
         path = self.download_item.downloadDirectory()
         if os.path.exists(path):
-            os.startfile(path)
+            if hasattr(os, "startfile"):
+                os.startfile(path)  # Windows
+            elif sys.platform == "darwin":
+                subprocess.run(["open", path])
+            else:
+                subprocess.run(["xdg-open", path])
 
     def handle_state(self, state):
         if state == QWebEngineDownloadRequest.DownloadState.DownloadCompleted:

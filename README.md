@@ -1,5 +1,4 @@
 # GOR Browser v1.2 — патч с новыми функциями
- https://goryavrumyan.github.io/Gor_Launcher/
 
 ## Что внутри
 

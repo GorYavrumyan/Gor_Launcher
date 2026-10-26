@@ -627,9 +627,9 @@ class GORBrowser(QWidget):  # ИСПРАВЛЕНО: QWidget вместо QMainWi
     def show_more_menu(self):
         """Меню настроек и инструментов (вырезана кастомизация)"""
         menu = QMenu(self)
-        act_set = QAction("⚙️ Настройки браузера", self)
+        act_set = QAction(tr("browser_menu.settings"), self)
         act_set.triggered.connect(lambda: SettingsDialog(self).exec())
-        act_dev = QAction("🛠️ Инструменты разработчика (F12)", self)
+        act_dev = QAction(tr("browser_menu.dev_tools"), self)
         act_dev.triggered.connect(self.toggle_devtools)
         
         menu.addAction(act_set)

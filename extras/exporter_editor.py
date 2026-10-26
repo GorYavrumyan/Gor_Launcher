@@ -13,6 +13,7 @@ import zipfile
 import os
 import shutil
 import time
+import re
 from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QListWidget, QListWidgetItem, 
                              QLabel, QLineEdit, QProgressBar, QMessageBox, QFileDialog, QScrollArea, QCheckBox)
@@ -25,9 +26,24 @@ from lang_loader import tr
 # Оформление приложения теперь берётся из общего style.qss (см. style_loader.py),
 # который применяется глобально к QApplication в блоке __main__.
 
+_WIN_RESERVED = {"con", "prn", "aux", "nul"} | {f"com{i}" for i in range(1, 10)} | {f"lpt{i}" for i in range(1, 10)}
+
+
+def _safe_name(name, fallback="game"):
+    """Имя игры -> безопасное имя файла/папки. Названия вроде
+    "Assassin's Creed: Odyssey" содержат ':' и роняли упаковку (OSError)."""
+    s = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "_", str(name)).strip().rstrip(". ")
+    if not s:
+        s = fallback
+    if s.split(".")[0].lower() in _WIN_RESERVED:
+        s += "_"
+    return s
+
+
 class PackerWorker(QThread):
     progress = pyqtSignal(int, str, int, int)
     finished = pyqtSignal()
+    failed = pyqtSignal(str)
 
     def __init__(self, selected_games, output_path, master_name, include_json):
         super().__init__()
@@ -37,24 +53,42 @@ class PackerWorker(QThread):
         self.include_json = include_json
 
     def run(self):
-        total = len(self.selected_games)
+        # Любая ошибка раньше убивала поток без сигнала: окно прогресса
+        # зависало навсегда, а temp_game_zips оставалась на диске.
         temp_dir = os.path.join(self.output_path, "temp_game_zips")
+        try:
+            self._pack(temp_dir)
+        except Exception as e:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            self.failed.emit(str(e))
+            return
+        self.finished.emit()
+
+    def _pack(self, temp_dir):
+        total = len(self.selected_games)
         os.makedirs(temp_dir, exist_ok=True)
         game_zips = []
-        
+        used_names = set()
+
         for i, game in enumerate(self.selected_games):
-            game_name = game['name']
+            game_name = _safe_name(game['name'])
+            if game_name.lower() in used_names:
+                game_name = f"{game_name}_{i}"
+            used_names.add(game_name.lower())
             game_zip_path = os.path.join(temp_dir, f"{game_name}.zip")
             root_folder = game.get('root_path', '')
             
             files_list = []
-            if os.path.exists(root_folder):
+            if root_folder and os.path.isdir(root_folder):
                 for root, _, files in os.walk(root_folder):
                     for file in files: files_list.append(os.path.join(root, file))
             
             with zipfile.ZipFile(game_zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
                 for idx, f_path in enumerate(files_list):
-                    zf.write(f_path, arcname=os.path.join(game_name, os.path.relpath(f_path, root_folder)))
+                    try:
+                        zf.write(f_path, arcname=os.path.join(game_name, os.path.relpath(f_path, root_folder)))
+                    except OSError:
+                        pass  # файл занят/недоступен - пропускаем его, а не рушим весь экспорт
                     p_game = int(((idx + 1) / len(files_list)) * 100) if files_list else 100
                     p_total = int(((i + (idx + 1) / len(files_list)) / (total if total > 0 else 1)) * 50)
                     self.progress.emit(p_total, tr("exporter.packing_label", name=game_name), i, p_game)
@@ -65,7 +99,7 @@ class PackerWorker(QThread):
             
             game_zips.append(game_zip_path)
             
-        master_full_path = os.path.join(self.output_path, f"{self.master_name}.zip")
+        master_full_path = os.path.join(self.output_path, f"{_safe_name(self.master_name, 'GameExport')}.zip")
         with zipfile.ZipFile(master_full_path, 'w', zipfile.ZIP_DEFLATED) as master_zip:
             total_zips = len(game_zips) if game_zips else 1
             for i, zf_path in enumerate(game_zips):
@@ -74,17 +108,27 @@ class PackerWorker(QThread):
                 os.remove(zf_path)
             
             if self.include_json and os.path.exists("games_data.json"):
-                master_zip.write("games_data.json", arcname="games_data.json")
-        
+                try:
+                    with open("games_data.json", "r", encoding="utf-8") as jf:
+                        exported = json.load(jf)
+                    if isinstance(exported, dict):
+                        # Блок "browser" (история, закладки, сохранённые данные браузера)
+                        # к библиотеке игр не относится - не отдаём его третьим лицам.
+                        exported.pop("browser", None)
+                    master_zip.writestr("games_data.json", json.dumps(exported, ensure_ascii=False, indent=4))
+                except (OSError, ValueError):
+                    master_zip.write("games_data.json", arcname="games_data.json")
+
         time.sleep(0.5)
         if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir, ignore_errors=True)
-            
-        self.finished.emit()
 
 
-with open("version.json", "r", encoding="utf-8") as f:
-    version = json.load(f)["version"]
+try:
+    with open(os.path.join(_PROJECT_ROOT, "version.json"), "r", encoding="utf-8") as f:
+        version = json.load(f)["version"]
+except Exception:
+    version = ""
 
 
 class PackerGUI(QWidget):
@@ -178,31 +222,35 @@ class ProgressWindow(QWidget):
         self.scroll.setWidgetResizable(True)
         self.scroll_content = QWidget()
         self.scroll_layout = QVBoxLayout(self.scroll_content)
-        self.game_bars = {}
+        self.game_bars = []   # список, а не словарь по имени: дубликаты имён сливались в один бар
         for game in selected_games:
             g_layout = QVBoxLayout()
             g_layout.addWidget(QLabel(tr("exporter.game_label", name=game['name'])))
             bar = QProgressBar()
             g_layout.addWidget(bar)
             self.scroll_layout.addLayout(g_layout)
-            self.game_bars[game['name']] = bar
+            self.game_bars.append(bar)
         self.scroll_layout.addStretch()
         self.scroll.setWidget(self.scroll_content)
         layout.addWidget(self.scroll)
         self.worker = PackerWorker(selected_games, output_path, master_name, include_json)
         self.worker.progress.connect(self.update_ui)
         self.worker.finished.connect(self.close)
+        self.worker.failed.connect(self._on_failed)
         self.worker.start()
+
+    def _on_failed(self, message):
+        QMessageBox.critical(self, tr("common.error"), message)
+        self.close()
 
     def update_ui(self, total_p, text, game_idx, game_p):
         self.master_bar.setValue(total_p)
-        if game_idx >= 0:
-            name = list(self.game_bars.keys())[game_idx]
-            self.game_bars[name].setValue(game_p)
+        if 0 <= game_idx < len(self.game_bars):
+            self.game_bars[game_idx].setValue(game_p)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
+    app.setWindowIcon(QIcon(os.path.join(_PROJECT_ROOT, "favicon.ico")))
     apply_global_style(app)
     window = PackerGUI()
     window.show()

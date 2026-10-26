@@ -50,7 +50,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QListWidget, QListWidgetItem, QMessageBox, QFormLayout, QWidget,
@@ -144,7 +144,7 @@ class PasswordVault:
             if fernet.decrypt(data["verifier"].encode("ascii")) != _VERIFIER_PLAINTEXT:
                 return False
             entries = json.loads(fernet.decrypt(data["vault"].encode("ascii")).decode("utf-8"))
-        except (InvalidToken, KeyError, ValueError, json.JSONDecodeError, OSError):
+        except (InvalidToken, KeyError, ValueError, json.JSONDecodeError, OSError, TypeError, AttributeError):
             return False
         self._key = key
         self._entries = entries
@@ -208,9 +208,18 @@ class PasswordVault:
         self._write(data)
 
     def _write(self, data):
+        text = json.dumps(data)   # сначала сериализация: ошибка не оставит мусор рядом с хранилищем
         tmp_path = self.path + ".tmp"
         with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(data, f)
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())   # без fsync при сбое питания после rename файл мог оказаться пустым
+        if os.path.exists(self.path):
+            try:  # копия предыдущей версии: потеря хранилища = потеря всех паролей
+                import shutil
+                shutil.copyfile(self.path, self.path + ".bak")
+            except OSError:
+                pass
         os.replace(tmp_path, self.path)
 
 
@@ -437,7 +446,23 @@ class PasswordManagerDialog(QDialog):
         entry = self._selected_entry()
         if not entry:
             return
-        QApplication.clipboard().setText(entry.get("password", ""))
+        password = entry.get("password", "")
+        clipboard = QApplication.clipboard()
+        # Браузер при включённой LAN-синхронизации буфера рассылает любой новый
+        # текст из буфера всей сети открытым текстом - помечаем пароль как приватный.
+        owner = self.parent()
+        if owner is not None:
+            owner._clipboard_private_text = password
+        clipboard.setText(password)
+        # Пароль не должен оставаться в буфере обмена (и в его истории) бесконечно:
+        # через 30 секунд очищаем, но только если там всё ещё он, а не что-то новое.
+        def _clear_if_same():
+            try:
+                if password and clipboard.text() == password:
+                    clipboard.clear()
+            except RuntimeError:
+                pass
+        QTimer.singleShot(30_000, _clear_if_same)
 
     def _lock_and_close(self):
         self.vault.lock()

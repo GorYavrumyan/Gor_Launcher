@@ -14,7 +14,7 @@ for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
         sys.path.insert(0, _p)
 
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QGridLayout, QMenu
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QAction
 
 from game_card import GameCard
@@ -35,7 +35,9 @@ class GroupWidget(QFrame):
     def init_ui(self):
         self.main_vbox = QVBoxLayout(self)
         self.header = QWidget()
-        if not self.is_favorite:
+        # Меню "переименовать/удалить" бессмысленно для "Избранного" и для
+        # блока игр без группы - это не настоящие группы из games_data.json.
+        if not self.is_favorite and self.group_name != tr("launcher.standalone_title"):
             self.header.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             self.header.customContextMenuRequested.connect(self.show_group_menu)
         h_lay = QHBoxLayout(self.header)
@@ -52,6 +54,30 @@ class GroupWidget(QFrame):
         self.grid = QGridLayout(self.content)
         self.grid.setSpacing(25)
         self.main_vbox.addWidget(self.content)
+
+    # --- drag-n-drop: приём игр, перетащенных с карточек других групп ---
+    def dragEnterEvent(self, e):
+        if not self.is_favorite and e.mimeData().hasText():
+            e.acceptProposedAction()
+        else:
+            e.ignore()
+
+    def dragMoveEvent(self, e):
+        if not self.is_favorite and e.mimeData().hasText():
+            e.acceptProposedAction()
+        else:
+            e.ignore()
+
+    def dropEvent(self, e):
+        if self.is_favorite or not e.mimeData().hasText():
+            e.ignore()
+            return
+        game_id = e.mimeData().text()
+        target = self.group_name
+        e.acceptProposedAction()
+        # Перенос пересоздаёт все карточки (в том числе ту, что тащили), поэтому
+        # откладываем его до выхода из цикла событий drag-n-drop.
+        QTimer.singleShot(0, lambda: self.parent_launcher.move_game_to_group(game_id, target))
 
     def refresh_cards(self, filter_text=""):
         while self.grid.count(): 

@@ -99,7 +99,9 @@ class AddonManager:
             _log(addon_path, "info", f"Аддон успешно запущен ({style})")
             emit_event(Events.ADDON_LOADED, folder)
             return True
-        except Exception as e:
+        except (Exception, SystemExit) as e:
+            # SystemExit тоже: аддон, вызвавший sys.exit() при старте, не должен
+            # закрывать весь лаунчер (метод обещает "никогда не бросает исключений").
             traceback.print_exc()
             _log(addon_path, "error", f"Ошибка запуска: {e}")
             api._cleanup()

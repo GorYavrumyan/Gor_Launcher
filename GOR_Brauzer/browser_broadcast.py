@@ -1,3 +1,7 @@
+try:
+    from lang_loader import tr
+except ImportError:
+    from shared.lang_loader import tr
 """
 browser_broadcast.py
 ----------------------
@@ -27,8 +31,9 @@ import json
 import os
 import platform
 import uuid
+from collections import deque
 
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog, QMessageBox
 from PyQt6.QtGui import QColor
 
@@ -42,6 +47,39 @@ except Exception:
     NETWORK_AVAILABLE = False
 
 PROTOCOL_MARKER = "gor-browser"
+
+# Пакеты приходят по UDP от кого угодно в сети и НЕ аутентифицированы, поэтому всё
+# из них считаем недоверенным: оставляем только http(s)-ссылки разумной длины и
+# ограничиваем количество (иначе "Открыть все" мог открыть file://, javascript:,
+# data: и т.п., а один пакет - завалить браузер тысячами вкладок).
+_ALLOWED_SCHEMES = ("http://", "https://")
+_MAX_URL_LEN = 2048
+_MAX_URLS = 100
+_MAX_NAME_LEN = 200
+_MAX_DATAGRAM_JSON = 8_000    # заметно меньше предела UDP (64 КБ): мелкие пакеты реже теряются
+_CHUNK_INTERVAL_MS = 25        # пауза между частями: иначе буфер приёма переполняется и часть теряется
+
+
+def is_safe_web_url(url):
+    return isinstance(url, str) and len(url) <= _MAX_URL_LEN and url.lower().startswith(_ALLOWED_SCHEMES)
+
+
+def sanitize_payload(data):
+    """Приводит входящий пакет к безопасному виду. None - пакет надо отбросить."""
+    ptype = data.get("type")
+    if ptype in ("tab", "group"):
+        urls = [u for u in (data.get("urls") or []) if is_safe_web_url(u)][:_MAX_URLS] \
+            if isinstance(data.get("urls"), list) else []
+        if not urls:
+            return None
+        data["urls"] = urls
+        name = data.get("name")
+        data["name"] = name[:_MAX_NAME_LEN] if isinstance(name, str) else urls[0]
+    if isinstance(data.get("sender"), str):
+        data["sender"] = data["sender"][:80]
+    else:
+        data["sender"] = "устройство в сети"
+    return data
 MAX_GROUP_TABS_HINT = 10  # "5-10 вкладок" из release notes - не жёсткое ограничение, а ориентир UI
 
 
@@ -64,6 +102,7 @@ class GorBroadcastService(QObject):
         # по instance_id, так что LAN Broadcast работает и между двумя
         # процессами на одном ПК (для тестов/локальной отладки).
         self.instance_id = uuid.uuid4().hex
+        self._seen_msg_ids = deque(maxlen=128)   # дедупликация (см. _send: один пакет уходит дважды)
         if NETWORK_AVAILABLE:
             self._send_socket = QUdpSocket(self)
 
@@ -76,6 +115,11 @@ class GorBroadcastService(QObject):
             self._recv_socket.close()
             self._recv_socket.deleteLater()
         self._recv_socket = QUdpSocket(self)
+        try:  # больший буфер приёма (по умолчанию ~200 КБ) - серия пакетов не теряется
+            from PyQt6.QtNetwork import QAbstractSocket
+            self._recv_socket.setSocketOption(QAbstractSocket.SocketOption.ReceiveBufferSizeSocketOption, 4 * 1024 * 1024)
+        except Exception:
+            pass
         bound = self._recv_socket.bind(
             QHostAddress.SpecialAddress.AnyIPv4, self.port,
             QUdpSocket.BindFlag.ShareAddress | QUdpSocket.BindFlag.ReuseAddressHint,
@@ -108,6 +152,16 @@ class GorBroadcastService(QObject):
             # считался бы "собой" и его пакеты молча отбрасывались бы.
             if data.get("instance_id") == self.instance_id:
                 continue
+            # _send шлёт каждый пакет и широковещательно, и на 127.0.0.1 - на одном
+            # ПК второй процесс получал его дважды (двойной тост, двойное слияние).
+            msg_id = data.get("msg_id")
+            if msg_id:
+                if msg_id in self._seen_msg_ids:
+                    continue
+                self._seen_msg_ids.append(msg_id)
+            data = sanitize_payload(data)
+            if data is None:
+                continue
             self.broadcast_received.emit(data)
 
     # ------------------------------------------------------------------
@@ -122,6 +176,7 @@ class GorBroadcastService(QObject):
         # процессу GOR Browser на этом же ПК) корректно отличить "чужой"
         # пакет от "своего же эха", не полагаясь на имя компьютера.
         payload["instance_id"] = self.instance_id
+        payload["msg_id"] = uuid.uuid4().hex
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
 
         sent_any = False
@@ -167,7 +222,24 @@ class GorBroadcastService(QObject):
         них ещё нет (merge по URL, см. _handle_incoming_bookmark_sync).
         Без центрального сервера/облака - просто "последний присланный
         снимок побеждает" для новых записей, существующие не трогаем."""
-        return self._send({"type": "bookmark_sync", "bookmarks": list(bookmarks)})
+        # Весь список в одной UDP-датаграмме не помещался при сотнях закладок
+        # (writeDatagram возвращал -1, синхронизация молча не работала). Делим на
+        # части: получатель сливает закладки по URL, так что части независимы.
+        chunks, chunk, size = [], [], 2
+        for bm in list(bookmarks):
+            bm_size = len(json.dumps(bm, ensure_ascii=False).encode("utf-8")) + 2
+            if chunk and size + bm_size > _MAX_DATAGRAM_JSON:
+                chunks.append(chunk)
+                chunk, size = [], 2
+            chunk.append(bm)
+            size += bm_size
+        chunks.append(chunk)          # последняя (или единственная, в т.ч. пустая) часть
+        # первая часть уходит сразу, остальные - с паузой (см. _CHUNK_INTERVAL_MS)
+        ok = self._send({"type": "bookmark_sync", "bookmarks": chunks[0]})
+        for i, part in enumerate(chunks[1:], start=1):
+            QTimer.singleShot(i * _CHUNK_INTERVAL_MS,
+                              lambda p=part: self._send({"type": "bookmark_sync", "bookmarks": p}))
+        return ok
 
 
 class BroadcastToast(QWidget):
@@ -203,15 +275,26 @@ class BroadcastToast(QWidget):
         name_label.setStyleSheet("color: #9aa0aa; font-size: 12px;")
         layout.addWidget(name_label)
 
-        count = len(payload.get("urls", []))
-        count_label = QLabel(f"{count} ссылок(a)")
+        urls = payload.get("urls", [])
+        count = len(urls)
+        # Показываем, КУДА реально ведут ссылки: имя в пакете задаёт отправитель
+        # и может выдавать себя за что угодно.
+        from urllib.parse import urlparse
+        hosts = []
+        for u in urls:
+            h = urlparse(u).netloc
+            if h and h not in hosts:
+                hosts.append(h)
+        host_text = ", ".join(hosts[:3]) + ("…" if len(hosts) > 3 else "")
+        count_label = QLabel(f"{count} ссылок(a): {host_text}" if host_text else f"{count} ссылок(a)")
+        count_label.setWordWrap(True)
         count_label.setStyleSheet("color: #9aa0aa; font-size: 11px;")
         layout.addWidget(count_label)
 
         btn_row = QHBoxLayout()
-        btn_open = QPushButton("Открыть все")
+        btn_open = QPushButton(tr("broadcast.open_all"))
         btn_open.clicked.connect(self.open_all)
-        btn_save = QPushButton("Сохранить в JSON", objectName="Secondary")
+        btn_save = QPushButton(tr("broadcast.save_json"), objectName="Secondary")
         btn_save.clicked.connect(self.save_json)
         btn_dismiss = QPushButton("✕", objectName="Secondary")
         btn_dismiss.setFixedWidth(32)
@@ -248,7 +331,7 @@ class BroadcastToast(QWidget):
         if path:
             with open(path, "w", encoding="utf-8") as f:
                 json.dump(self.payload, f, ensure_ascii=False, indent=2)
-            QMessageBox.information(self, "GOR Browser", "Сохранено.")
+            QMessageBox.information(self, tr("broadcast.saved_title"), tr("broadcast.saved_msg"))
         self.close()
 
 

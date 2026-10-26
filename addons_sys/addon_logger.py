@@ -33,9 +33,11 @@
 
 import os
 import json
+import threading
 from datetime import datetime
 
 MAX_LOG_ENTRIES = 50
+_write_lock = threading.Lock()  # read-modify-write activity.json из разных потоков
 
 
 def _addon_root_from_file(caller_file):
@@ -50,24 +52,26 @@ def _write_entry(addon_root, msg_type, message):
     должен ронять сам аддон."""
     try:
         activity_file = os.path.join(addon_root, "activity.json")
-
-        entries = []
-        if os.path.exists(activity_file):
-            try:
-                with open(activity_file, "r", encoding="utf-8") as f:
-                    entries = json.load(f)
-            except Exception:
+        with _write_lock:
+            entries = []
+            if os.path.exists(activity_file):
+                try:
+                    with open(activity_file, "r", encoding="utf-8") as f:
+                        entries = json.load(f)
+                except Exception:
+                    entries = []
+            if not isinstance(entries, list):
                 entries = []
 
-        entries.insert(0, {
-            "type": msg_type,
-            "message": message,
-            "time": datetime.now().strftime("%H:%M:%S"),
-        })
-        entries = entries[:MAX_LOG_ENTRIES]
+            entries.insert(0, {
+                "type": msg_type,
+                "message": message,
+                "time": datetime.now().strftime("%H:%M:%S"),
+            })
+            entries = entries[:MAX_LOG_ENTRIES]
 
-        with open(activity_file, "w", encoding="utf-8") as f:
-            json.dump(entries, f, ensure_ascii=False, indent=2)
+            with open(activity_file, "w", encoding="utf-8") as f:
+                json.dump(entries, f, ensure_ascii=False, indent=2)
     except Exception as e:
         print(f"[addon_logger] Не удалось записать лог: {e}")
 

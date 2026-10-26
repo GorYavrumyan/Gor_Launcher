@@ -17,6 +17,7 @@ from PyQt6.QtGui import QIcon
 
 from style_loader import apply_global_style
 from lang_loader import tr
+from safe_json import read_json, write_json_inplace
 
 class GroupEditor(QDialog):
     # Добавили аргумент old_name=None, чтобы редактор понимал режим работы
@@ -72,14 +73,20 @@ class GroupEditor(QDialog):
             QMessageBox.warning(self, tr("common.error"), tr("group_editor.name_empty_error"))
             return
 
-        if os.path.exists(self.data_file):
-            with open(self.data_file, 'r', encoding='utf-8') as f:
-                try:
-                    data = json.load(f)
-                except:
-                    data = {"groups": {}, "standalone": [], "history": []}
-        else:
+        # Зарезервированные названия: игры с таким "названием группы" лаунчер
+        # считает играми без группы / вкладкой "Избранное", и группа осталась бы пустой.
+        reserved = {"без группы", "избранное", tr("launcher.standalone_title").lower()}
+        if name.lower() in reserved and name != self.old_name:
+            QMessageBox.warning(self, tr("common.error"), tr("group_editor.name_exists_create_error"))
+            return
+
+        # Битый файл не затираем молча (см. safe_json.read_json)
+        data = read_json(self.data_file, lambda: {"groups": {}, "standalone": [], "history": []})
+        if not isinstance(data, dict):
             data = {"groups": {}, "standalone": [], "history": []}
+        data.setdefault("groups", {})
+        data.setdefault("standalone", [])
+        data.setdefault("history", [])
 
         # --- ИСПРАВЛЕННАЯ ЛОГИКА СОХРАНЕНИЯ (СОХРАНЯЕМ ПОРЯДОК) ---
         if self.old_name:
@@ -106,9 +113,8 @@ class GroupEditor(QDialog):
             data["groups"][name] = []
         # -----------------------------------------------------------
 
-        with open(self.data_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4)
-        
+        write_json_inplace(self.data_file, data)
+
         self.accept()
 
 if __name__ == "__main__":

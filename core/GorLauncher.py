@@ -40,10 +40,16 @@ from game_card import GameCard
 from group_widget import GroupWidget
 from browser_widget import GORBrowser
 from cover_ipc import IPC_SERVER_NAME, encode_message, try_decode_line
+from safe_json import read_json, write_json_inplace
 
 
-with open("version.json", "r", encoding="utf-8") as f:
-    version = json.load(f)["version"]
+try:
+    # Путь строится от корня проекта, а не от текущей папки процесса:
+    # иначе запуск из другой директории (ярлык, терминал) падал на импорте.
+    with open(os.path.join(_PROJECT_ROOT, "version.json"), "r", encoding="utf-8") as f:
+        version = json.load(f)["version"]
+except Exception:
+    version = "unknown"
 
 
 # --- ОТДЕЛЬНОЕ ОКНО ДЛЯ "ОТКРЕПЛЁННОЙ" ВКЛАДКИ ЛАУНЧЕРА ---
@@ -127,6 +133,9 @@ class GORLauncher(QMainWindow):
         self.data_file = "games_data.json"
         self.active_sessions = {}
         self._wheel_monitors = []
+        self._game_monitors = set()  # живые ProcessMonitor (держим ссылку, пока поток работает)
+        self.big_picture = None      # окно режима Big Picture, пока он открыт
+        self._bp_waiters = []        # соединения повторных запусков (--bigpicture), ждущих закрытия Big Picture
 
         # --- дочерние окна/процессы лаунчера (редактор игры/группы,
         # Sunshine, экспортёр, Control Center, колесо фортуны) - нужны,
@@ -163,15 +172,10 @@ class GORLauncher(QMainWindow):
         esc_shortcut.activated.connect(self._on_escape_pressed)
 
     def load_data(self):
-        if os.path.exists(self.data_file):
-            try:
-                with open(self.data_file, 'r', encoding='utf-8') as f: 
-                    self.games_info = json.load(f)
-            except Exception as e:
-                print(f"Не удалось прочитать {self.data_file}, создаю новую базу: {e}")
-                self.games_info = {"groups": {}, "standalone": [], "history": []}
-        else: 
-            self.games_info = {"groups": {}, "standalone": [], "history": []}
+        # read_json не затирает битый файл: пробует .bak, иначе откладывает
+        # копию в .corrupt-* и только потом отдаёт пустую базу.
+        data = read_json(self.data_file, lambda: {"groups": {}, "standalone": [], "history": []})
+        self.games_info = data if isinstance(data, dict) else {"groups": {}, "standalone": [], "history": []}
         if "history" not in self.games_info: self.games_info["history"] = []
         if "groups" not in self.games_info: self.games_info["groups"] = {}
         if "standalone" not in self.games_info: self.games_info["standalone"] = []
@@ -190,8 +194,20 @@ class GORLauncher(QMainWindow):
             self.save_data()
 
     def save_data(self):
-        with open(self.data_file, 'w', encoding='utf-8') as f: 
-            json.dump(self.games_info, f, indent=4)
+        # Блок "browser" принадлежит GORBrowser: он пишет его напрямую в файл
+        # (закладки, история, пароли, группы вкладок, now_playing). Копия в
+        # памяти устаревает сразу после загрузки, поэтому перед записью берём
+        # актуальный блок с диска - иначе каждое сохранение лаунчера (конец
+        # игровой сессии, избранное и т.д.) откатывало бы данные браузера.
+        try:
+            if os.path.exists(self.data_file):
+                with open(self.data_file, "r", encoding="utf-8") as f:
+                    on_disk = json.load(f)
+                if isinstance(on_disk, dict) and isinstance(on_disk.get("browser"), dict):
+                    self.games_info["browser"] = on_disk["browser"]
+        except Exception:
+            pass  # файл в этот момент читать нельзя - оставляем то, что в памяти
+        write_json_inplace(self.data_file, self.games_info)
 
     def init_ui(self):
         central = QWidget()
@@ -211,6 +227,12 @@ class GORLauncher(QMainWindow):
 
         burger_menu = QMenu(self)
 
+        act_big_picture = QAction(tr("launcher.menu_big_picture"), self)
+        act_big_picture.setShortcut(QKeySequence(Qt.Key.Key_F11))
+        act_big_picture.triggered.connect(self.open_big_picture)
+        burger_menu.addAction(act_big_picture)
+        burger_menu.addSeparator()
+
         act_wheel = QAction(tr("launcher.menu_wheel"), self)
         act_wheel.triggered.connect(self.open_fortune_wheel)
         burger_menu.addAction(act_wheel)
@@ -218,6 +240,10 @@ class GORLauncher(QMainWindow):
         act_sunshine = QAction(tr("launcher.menu_sunshine"), self)
         act_sunshine.triggered.connect(self.run_sunshine)
         burger_menu.addAction(act_sunshine)
+
+        act_tv = QAction(tr("launcher.menu_tv"), self)
+        act_tv.triggered.connect(lambda: self.run_sunshine(tab="tv"))
+        burger_menu.addAction(act_tv)
 
         act_moonlight = QAction(tr("launcher.menu_moonlight"), self)
         act_moonlight.triggered.connect(self.run_moonlight)
@@ -495,6 +521,9 @@ class GORLauncher(QMainWindow):
         if not self.isHidden():
             self._state_before_tray = self.windowState()
         self.tray_icon.show()
+        # Пока главное окно спрятано, закрытие любого диалога (он был бы
+        # "последним окном") не должно завершать приложение.
+        QApplication.setQuitOnLastWindowClosed(False)
         self.hide()
         if self.tray_icon.supportsMessages():
             self.tray_icon.showMessage(
@@ -513,13 +542,41 @@ class GORLauncher(QMainWindow):
         self.show()
         self.raise_()
         self.activateWindow()
+        QApplication.setQuitOnLastWindowClosed(True)
         if self.tray_icon is not None:
             self.tray_icon.hide()
+
+    def track_game_monitor(self, monitor):
+        """Регистрирует ProcessMonitor запущенной игры. Обработчик конца
+        сессии живёт здесь, в лаунчере, а не в GameCard: карточки
+        пересоздаются при каждом refresh_list() (поиск, сортировка,
+        избранное), и привязанный к старой карточке обработчик пропадал -
+        время игры не записывалось, лаунчер не возвращался из трея. Ссылка на
+        поток тоже хранится здесь: иначе сборка мусора могла уничтожить
+        работающий QThread (аварийное завершение процесса)."""
+        self._game_monitors.add(monitor)
+        monitor.finished_playing.connect(self.on_session_finished)
+        monitor.finished.connect(lambda m=monitor: self._game_monitors.discard(m))
+
+    def on_session_finished(self, duration, game_data):
+        gid = game_data.get('id') or game_data.get('name')
+        self.active_sessions.pop(gid, None)
+        self.on_game_session_changed()
+        self.finalize_history_session(duration, game_data)
+        try:  # событие для аддонов (addon_API)
+            import addon_API
+            addon_API.emit_event("game_finished", duration, game_data)
+        except Exception:
+            pass
 
     def on_game_session_changed(self):
         """Вызывается из GameCard при запуске/остановке/завершении игры.
         Сворачивает лаунчер в трей, пока запущена хотя бы одна игра, и
         возвращает обратно, когда игр не осталось."""
+        if self.big_picture is not None:
+            # В режиме Big Picture видимостью окон управляет он сам (прячется на время
+            # игры и возвращается после неё) - обычное окно лаунчера показывать нельзя.
+            return
         if len(self.active_sessions) > 0:
             self.minimize_to_tray()
         else:
@@ -564,7 +621,11 @@ class GORLauncher(QMainWindow):
             else:
                 data = {}
         except Exception:
-            data = {}
+            # Файл не удалось прочитать (его как раз пишет другой процесс) -
+            # лучше пропустить виджет, чем записать почти пустой файл поверх.
+            return
+        if not isinstance(data, dict):
+            return
         if not isinstance(data.get("browser"), dict):
             data["browser"] = {}
         data["browser"]["now_playing"] = {
@@ -576,8 +637,7 @@ class GORLauncher(QMainWindow):
             "discord_url": game_data.get("discord_url", ""),
         }
         try:
-            with open(self.data_file, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
+            write_json_inplace(self.data_file, data)
         except Exception:
             pass  # виджет "Сейчас в игре" просто не обновится - не критично
 
@@ -716,7 +776,10 @@ class GORLauncher(QMainWindow):
         self._track_process(proc)
 
     def edit_game(self, game_data, group_name):
-        g_name = group_name if group_name else NO_GROUP_KEY
+        # В group_name может прийти заголовок блока ("Отдельные игры / Без группы")
+        # или "Избранное" - это не настоящие группы. Редактор всё равно ищет игру
+        # по id во всех списках, но NO_GROUP_KEY надёжнее для запасного поиска по имени.
+        g_name = group_name if group_name in self.games_info.get("groups", {}) else NO_GROUP_KEY
         gid = game_data.get("id", "")
         proc = run_editor_process("game_editor", [game_data['name'], g_name, gid], py_subdir="editors")
         self._track_process(proc)
@@ -734,6 +797,7 @@ class GORLauncher(QMainWindow):
         if proc is None:
             return
         self._child_processes.append(proc)
+        self._wheel_monitors = [m for m in self._wheel_monitors if m.isRunning()]
         monitor = EditorMonitor(proc)
         monitor.editor_closed.connect(self.on_editor_closed)
         self._wheel_monitors.append(monitor)
@@ -767,31 +831,46 @@ class GORLauncher(QMainWindow):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
         if reply == QMessageBox.StandardButton.Yes:
-            gid = game_data.get('id')
-            if group_name and group_name in self.games_info.get("groups", {}):
-                lst = self.games_info["groups"][group_name]
-            else:
-                lst = self.games_info.get("standalone", [])
-            
-            for idx, g in enumerate(lst):
-                if (gid and g.get('id') == gid) or (g['name'] == game_data['name']):
-                    lst.pop(idx)
-                    break
+            found = self._find_game_ref(game_data, preferred_group=group_name)
+            if found:
+                lst, idx = found
+                lst.pop(idx)
 
             self.save_data()
             self.refresh_list()
 
+    def _find_game_ref(self, game_data, preferred_group=None):
+        """Возвращает (список, индекс) игры. Сначала строго по id (во всех
+        списках), и только если у игры нет id - по имени. Раньше условие было
+        "id совпал ИЛИ имя совпало", из-за чего при дубликатах имён
+        удалялась/получала время не та игра, а из вкладки "Избранное" игра
+        из группы вообще не находилась."""
+        groups = self.games_info.get("groups", {})
+        lists = []
+        if preferred_group and preferred_group in groups:
+            lists.append(groups[preferred_group])
+        lists.append(self.games_info.get("standalone", []))
+        lists.extend(groups.values())
+        gid = game_data.get('id')
+        if gid:
+            for lst in lists:
+                for idx, g in enumerate(lst):
+                    if g.get('id') == gid:
+                        return lst, idx
+        name = game_data.get('name')
+        for lst in lists:
+            for idx, g in enumerate(lst):
+                if not g.get('id') or not gid:
+                    if g.get('name') == name:
+                        return lst, idx
+        return None
+
     def move_game_to_group(self, game_identifier, target_group):
         found_game = None
-        all_lists = [self.games_info["standalone"]] + list(self.games_info["groups"].values())
-        
-        for lst in all_lists:
-            for idx, g in enumerate(lst):
-                if g.get('id') == game_identifier or g['name'] == game_identifier:
-                    found_game = lst.pop(idx)
-                    break
-            if found_game:
-                break
+        found = self._find_game_ref({"id": game_identifier, "name": game_identifier})
+        if found:
+            lst, idx = found
+            found_game = lst.pop(idx)
 
         if found_game:
             if target_group == tr("launcher.standalone_title") or target_group == NO_GROUP_KEY:
@@ -812,6 +891,75 @@ class GORLauncher(QMainWindow):
         finally:
             self._active_wheel_dialog = None
 
+    def open_big_picture(self):
+        """Режим Big Picture: полноэкранный интерфейс для ТВ с управлением геймпадом."""
+        if self.big_picture is not None:
+            self.big_picture.showFullScreen()
+            self.big_picture.raise_()
+            return
+        try:
+            from big_picture import BigPictureWindow
+            window = BigPictureWindow(self)
+        except Exception as e:
+            QMessageBox.critical(self, tr("common.error"), str(e))
+            return
+        self.big_picture = window
+        window.exited.connect(self._on_big_picture_exited)
+        # Пока открыт Big Picture, окон может не быть вовсе (он прячется на время игры) -
+        # приложение не должно завершаться из-за этого.
+        QApplication.setQuitOnLastWindowClosed(False)
+        self.hide()
+        window.start()
+
+    # --- команды от повторных запусков (shared/single_instance.py) ---
+    def on_remote_command(self, command, sock):
+        if command == "bigpicture":
+            self.attach_big_picture_waiter(sock)
+        else:
+            self.bring_to_front()
+            sock.disconnectFromServer()
+
+    def bring_to_front(self):
+        if self.big_picture is not None:
+            self.big_picture.showFullScreen()
+            self.big_picture.raise_()
+            self.big_picture.activateWindow()
+            return
+        self.showNormal() if self.isMinimized() else self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def attach_big_picture_waiter(self, sock):
+        """Повторный запуск с --bigpicture (например, из Sunshine) не создаёт второй лаунчер, а
+        открывает Big Picture здесь и держит соединение, пока режим не закроют."""
+        self._bp_waiters.append(sock)
+        sock.disconnected.connect(lambda s=sock: self._bp_waiters.remove(s) if s in self._bp_waiters else None)
+        self.open_big_picture()
+        if self.big_picture is None:      # не открылся - не заставляем удалённый процесс ждать вечно
+            self._release_bp_waiters()
+
+    def _release_bp_waiters(self):
+        waiters, self._bp_waiters = self._bp_waiters, []
+        for s in waiters:
+            try:
+                s.disconnectFromServer()
+            except RuntimeError:
+                pass
+
+    def _on_big_picture_exited(self, quit_app):
+        self._release_bp_waiters()
+        window, self.big_picture = self.big_picture, None
+        if window is not None:
+            window.deleteLater()
+        QApplication.setQuitOnLastWindowClosed(True)
+        if quit_app:
+            self.close()
+            return
+        self.refresh_list()   # данные могли поменяться (избранное, время игры)
+        self.showNormal() if self.isMinimized() else self.show()
+        self.raise_()
+        self.activateWindow()
+
     def launch_game_from_wheel(self, game_data):
         target_card = None
         for i in range(self.lib_scroll_lay.count()):
@@ -820,25 +968,38 @@ class GORLauncher(QMainWindow):
                 for j in range(w.grid.count()):
                     card = w.grid.itemAt(j).widget()
                     if isinstance(card, GameCard):
-                        if (card.game_data.get('id') and card.game_data.get('id') == game_data.get('id')) or \
-                           (card.game_data['name'] == game_data['name']):
+                        # Строго по id; по имени - только если id нет. Условие "id ИЛИ имя"
+                        # запускало не ту игру, когда у двух игр одинаковое название.
+                        gid = game_data.get('id')
+                        if gid and card.game_data.get('id'):
+                            same = card.game_data['id'] == gid
+                        else:
+                            same = card.game_data.get('name') == game_data.get('name')
+                        if same:
                             target_card = card
                             break
             if target_card:
                 break
         
         if target_card:
-            target_card.handle_main_button()
+            if not getattr(target_card, "is_running", False):  # иначе кнопка "Играть" ОСТАНОВИТ игру
+                target_card.handle_main_button()
         else:
+            # Карточки игры нет на экране (например, список отфильтрован поиском или
+            # открыт Big Picture). Раньше здесь был голый os.startfile(): без рабочей
+            # папки, аргументов и учёта времени игры. Теперь создаём такую же карточку,
+            # но не показываем её - запуск и учёт сессии идут тем же путём.
             try:
-                path = game_data['path']
-                universal_launch(path)
+                card = GameCard(game_data, self, None)
+                card.handle_main_button()
             except Exception as e:
                 QMessageBox.critical(self, tr("common.error"), tr("game_card.launch_error", error=e))
 
-    def run_sunshine(self):
+    def run_sunshine(self, tab=None):
+        # QAction.triggered передаёт bool "checked" - нестроковые значения игнорируем
+        args = ["--tab", tab] if isinstance(tab, str) else None
         try:
-            proc = run_editor_process("sunshine_control", py_subdir="remote")
+            proc = run_editor_process("sunshine_control", args=args, py_subdir="remote")
             self._track_process(proc)
         except Exception as e:
             QMessageBox.critical(self, tr("sunshine_error.title"), tr("sunshine_error.text", error=e))
@@ -1024,19 +1185,14 @@ class GORLauncher(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, tr("exporter_error.title"), tr("exporter_error.text", error=e))
 
+    def _record_playtime(self, duration, game_data):
+        found = self._find_game_ref(game_data)
+        if found:
+            lst, idx = found
+            lst[idx]['playtime_seconds'] = lst[idx].get('playtime_seconds', 0) + duration
+
     def finalize_history_session(self, duration, game_data):
-        gid = game_data.get('id')
-        found_game = None
-        all_lists = [self.games_info["standalone"]] + list(self.games_info["groups"].values())
-        
-        for lst in all_lists:
-            for g in lst:
-                if (gid and g.get('id') == gid) or (g['name'] == game_data['name']):
-                    g['playtime_seconds'] = g.get('playtime_seconds', 0) + duration
-                    found_game = g
-                    break
-            if found_game:
-                break
+        self._record_playtime(duration, game_data)
 
         now_str = datetime.now().strftime("%d.%m.%Y %H:%M")
         history_entry = {
@@ -1077,6 +1233,38 @@ class GORLauncher(QMainWindow):
         if self.tray_icon is not None:
             self.tray_icon.hide()
 
+        # Игры, которые ещё запущены: фиксируем наигранное время до этого
+        # момента (после закрытия лаунчера отслеживать игру уже некому) и
+        # останавливаем потоки-наблюдатели, иначе при выходе Qt аварийно
+        # завершает процесс ("QThread: Destroyed while thread is still running").
+        try:
+            for session in list(self.active_sessions.values()):
+                card = session.get('card')
+                gd = getattr(card, 'game_data', None)
+                if gd is not None:
+                    self._record_playtime(int(time.time() - session['start_time']), gd)
+            if self.active_sessions:
+                self.save_data()
+        except Exception:
+            pass
+        self.active_sessions.clear()
+        for m in list(self._game_monitors) + list(self._wheel_monitors):
+            try:
+                m.requestInterruption()
+            except RuntimeError:
+                pass
+        for m in list(self._game_monitors):
+            try:
+                m.wait(1500)
+            except RuntimeError:
+                pass
+
+        if self.big_picture is not None:
+            self.big_picture.shutdown()
+            self.big_picture.close()
+            self.big_picture = None
+        self._release_bp_waiters()
+
         # Закрываем все открепленные окна вкладок вместе с главным окном,
         # чтобы они не оставались висеть сами по себе.
         for win in list(self._detached_windows.values()):
@@ -1116,6 +1304,10 @@ class GORLauncher(QMainWindow):
                 pass
 
         super().closeEvent(event)
+        # Закрытие главного окна = выход. Флаг quitOnLastWindowClosed мог быть
+        # снят на время жизни в трее, поэтому выходим явно.
+        QApplication.setQuitOnLastWindowClosed(True)
+        QTimer.singleShot(0, QApplication.quit)
 
     def _close_child_processes(self):
         """Аккуратно завершает все зарегистрированные дочерние процессы

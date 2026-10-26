@@ -29,13 +29,32 @@ class ProcessMonitor(QThread):
         self.start_time = start_time
         self.game_data = game_data
 
+    def _sleep(self, seconds):
+        """Сон небольшими кусками, чтобы поток можно было остановить
+        (requestInterruption) при закрытии лаунчера."""
+        end = time.time() + seconds
+        while time.time() < end:
+            if self.isInterruptionRequested():
+                return False
+            time.sleep(0.25)
+        return True
+
     def run(self):
+        # Ждём основной процесс, но не блокируемся навсегда: опрашиваем,
+        # чтобы поток можно было остановить при закрытии лаунчера.
         try:
-            self.process.wait()
+            while self.process.poll() is None:
+                if self.isInterruptionRequested():
+                    return
+                time.sleep(0.5)
         except Exception:
             pass
+        # Момент последнего подтверждённого "игра жива": служебные паузы ниже
+        # (2 с + опрос tasklist) в наигранное время не входят.
+        last_alive = time.time()
 
-        time.sleep(2)
+        if not self._sleep(2):
+            return
         target_name = os.path.basename(self.game_data.get('path', '')).lower()
 
         if target_name:
@@ -44,23 +63,31 @@ class ProcessMonitor(QThread):
                 try:
                     if platform.system() == 'Windows':
                         output = subprocess.check_output(
-                            ['tasklist', '/FO', 'CSV'], universal_newlines=True,
+                            ['tasklist', '/FO', 'CSV', '/NH'], universal_newlines=True,
                             encoding='cp1251', errors='ignore', creationflags=NO_WINDOW_FLAGS
                         )
-                        if target_name in output.lower():
-                            running = True
+                        # Первое поле CSV - имя образа в кавычках. Сравниваем его
+                        # ТОЧНО: раньше искали подстроку во всём выводе, и
+                        # "launcher.exe" находился внутри "epicgameslauncher.exe" -
+                        # сессия не заканчивалась никогда.
+                        out_l = output.lower()
+                        running = ('"' + target_name + '",') in out_l
                     else:
                         output = subprocess.check_output(['ps', '-e', '-o', 'comm='], universal_newlines=True, errors='ignore')
-                        if target_name in output.lower():
-                            running = True
+                        names = {line.strip().lower() for line in output.splitlines()}
+                        running = target_name[:15] in names or target_name in names
                 except Exception:
                     running = False
 
                 if not running:
                     break
-                time.sleep(5)
+                last_alive = time.time()
+                if not self._sleep(5):
+                    return
 
-        duration = int(time.time() - self.start_time)
+        if self.isInterruptionRequested():
+            return
+        duration = max(0, int(last_alive - self.start_time))
         self.finished_playing.emit(duration, self.game_data)
 
 

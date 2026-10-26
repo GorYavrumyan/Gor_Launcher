@@ -9,7 +9,9 @@ for _sub in ("core", "shared", "editors", "remote", "addons_sys", "extras"):
         sys.path.insert(0, _p)
 
 import json
+import html
 
+from safe_json import write_json_inplace
 from PyQt6.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QSplitter, QWidget, QTabWidget,
@@ -263,7 +265,8 @@ class MonitoringTab(QWidget):
             return []
         try:
             with open(activity_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                entries = json.load(f)
+            return [e for e in entries if isinstance(e, dict)] if isinstance(entries, list) else []
         except Exception:
             return []
 
@@ -403,7 +406,7 @@ class ControlCenter(QDialog):
         if not web_path or not os.path.exists(web_path):
             self.web_view.setHtml(
                 ERROR_PAGE_TEMPLATE.format(
-                    message=tr("control_center.web_not_found", path=web_path)
+                    message=html.escape(tr("control_center.web_not_found", path=web_path))
                 )
             )
             return
@@ -441,16 +444,32 @@ class ControlCenter(QDialog):
             try:
                 with open(data_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-            except Exception:
-                pass
+                if not isinstance(data, dict):
+                    raise ValueError("games_data.json: ожидался объект")
+            except Exception as e:
+                # Не удалось прочитать - НЕ пишем поверх почти пустой заготовкой
+                # (раньше так стиралась вся библиотека игр).
+                QMessageBox.warning(self, tr("control_center.save_error_title"), str(e))
+                return
 
-        data["addons_list"] = [
+        # Аддоны без config.json/web/index.html Control Center не показывает и не
+        # сканирует. Раньше при любом переключении они пропадали из addons_list
+        # (то есть молча отключались) - сохраняем всё, что мы не показывали.
+        shown = set()
+        for info in self.addons_by_path.values():
+            shown.add(info["folder"])
+            shown.add(info["name"])
+        previous = data.get("addons_list", [])
+        if not isinstance(previous, list):
+            previous = []
+        kept = [a for a in previous if a not in shown]
+
+        data["addons_list"] = kept + [
             info["folder"] for info in self.addons_by_path.values() if info["enabled"]
         ]
 
         try:
-            with open(data_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=4, ensure_ascii=False)
+            write_json_inplace(data_path, data)
         except Exception as e:
             QMessageBox.warning(self, tr("control_center.save_error_title"), str(e))
 

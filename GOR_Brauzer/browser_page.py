@@ -6,6 +6,8 @@ GORWebPage - обёртка над QWebEnginePage, которая перехва
 них полноценную вкладку внутри GORBrowser вместо системного окна Qt.
 """
 
+import time
+
 from PyQt6.QtWebEngineCore import QWebEnginePage
 
 
@@ -15,6 +17,7 @@ class GORWebPage(QWebEnginePage):
     def __init__(self, profile, parent=None):
         super().__init__(profile, parent)
         self.ins_browser = None  # Устанавливается в GORBrowser.add_new_tab
+        self._popup_times = []   # времена последних открытий окон (защита от спама)
 
     def createWindow(self, _type):
         """
@@ -25,6 +28,14 @@ class GORWebPage(QWebEnginePage):
         # Если ссылка открывается ИЗ вкладки инкогнито, новая вкладка тоже
         # должна быть инкогнито - иначе это дыра в приватности (данные
         # "утекли" бы в обычный профиль через window.open()/target=_blank).
+        # Защита от "попандеров": страница, которая в цикле вызывает window.open(),
+        # раньше открывала неограниченное число вкладок. Не больше 5 окон за 3 секунды.
+        now = time.monotonic()
+        self._popup_times = [t for t in self._popup_times if now - t < 3.0]
+        if len(self._popup_times) >= 5:
+            return None
+        self._popup_times.append(now)
+
         is_incognito = self.profile() == self.ins_browser.incognito_profile
         new_tab_widget = self.ins_browser.add_new_tab(incognito=is_incognito)
 

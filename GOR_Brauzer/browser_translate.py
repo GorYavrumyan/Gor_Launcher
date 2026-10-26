@@ -25,6 +25,8 @@ QWebEngineScript. Это и есть "нативная интеграция бе
 """
 
 import os
+import json
+from urllib.parse import urlparse
 
 from PyQt6.QtWebEngineCore import QWebEngineScript
 
@@ -94,6 +96,23 @@ _FALLBACK_JS = r"""
 """
 
 
+def _allowed_hosts():
+    hosts = []
+    for pattern in VOT_URL_PATTERNS:
+        host = urlparse(pattern.replace("*", "x")).hostname
+        if host and host not in hosts:
+            hosts.append(host)
+    return hosts
+
+
+def _restrict_to_vot_sites(source):
+    """QWebEngineScript не умеет URL-шаблонов (как @match в Tampermonkey), и
+    VOT_URL_PATTERNS раньше нигде не применялся - скрипт (и кнопка-заглушка)
+    внедрялся на ВСЕ сайты. Оборачиваем исходник проверкой хоста."""
+    return ("if (" + json.dumps(_allowed_hosts()) + ".indexOf(location.hostname) !== -1) {\n"
+            + source + "\n}")
+
+
 def _read_vot_script(base_dir):
     path = os.path.join(base_dir, VOT_SCRIPT_FILENAME)
     if not os.path.exists(path):
@@ -130,11 +149,11 @@ def install_vot_translator(profile, base_dir, enabled=True):
 
     if real_source:
         script.setName("gor-vot-engine")
-        script.setSourceCode(real_source)
+        script.setSourceCode(_restrict_to_vot_sites(real_source))
         scripts.insert(script)
         return True
     else:
         script.setName("gor-vot-fallback")
-        script.setSourceCode(_FALLBACK_JS)
+        script.setSourceCode(_restrict_to_vot_sites(_FALLBACK_JS))
         scripts.insert(script)
         return False

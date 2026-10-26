@@ -1,0 +1,47 @@
+{
+    "browser": {
+        "session": {
+            "active": true,
+            "tabs": []
+        },
+        "settings": {
+            "theme_color": "#4c6ef5",
+            "top_bar_color": "#16171a",
+            "font_family": "Segoe UI",
+            "font_size": 10,
+            "search_engine": "Google",
+            "show_clock": true,
+            "show_title": true,
+            "show_todo": true,
+            "ui_opacity": 0.9,
+            "bg_image": "",
+            "brand_text": "GOR // OS",
+            "custom_engines": [],
+            "active_engine_idx": 0,
+            "bg_data": "",
+            "bg_type": "",
+            "bg_blur": 0,
+            "bg_interactive": false,
+            "adblock_enabled": true,
+            "vot_enabled": true,
+            "broadcast_enabled": true,
+            "broadcast_port": 51888,
+            "lan_clipboard_enabled": false,
+            "lan_bookmark_sync_enabled": false,
+            "adblock_dynamic_update_enabled": true,
+            "adblock_update_interval_hours": 24,
+            "adblock_last_update": "2026-10-21T14:51:37.932514",
+            "adblock_update_url": "",
+            "tab_suspend_enabled": true,
+            "tab_suspend_minutes": 15
+        }
+    },
+    "language": "ru",
+    "history": [],
+    "groups": {},
+    "standalone": [],
+    "addons_list": [
+        "gor_style",
+        "showcase_addon"
+    ]
+}

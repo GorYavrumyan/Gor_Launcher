@@ -37,6 +37,7 @@ import sys
 import builtins
 import subprocess
 import socket
+import threading
 
 from addon_logger import log_activity_for_addon
 
@@ -79,21 +80,22 @@ def _addon_root_for_current_call():
 # ровно то, что мы перехватываем. Без этой защиты получается "лог
 # логирует сам себя" до бесконечности (точнее, до предела глубины
 # рекурсии Python) - именно это и грузило CPU на 8+ секунд.
-_logging_in_progress = False
+# Флаг поточно-локальный: общий глобальный флаг в одном потоке гасил логирование
+# в остальных (события терялись).
+_guard = threading.local()
 
 
 def _log_if_from_addon(msg_type, message):
-    global _logging_in_progress
-    if _logging_in_progress:
+    if getattr(_guard, "busy", False):
         return
     addon_root = _addon_root_for_current_call()
     if not addon_root:
         return
-    _logging_in_progress = True
+    _guard.busy = True
     try:
         log_activity_for_addon(addon_root, msg_type, message)
     finally:
-        _logging_in_progress = False
+        _guard.busy = False
 
 
 # --------------------------------------------------------------------- #

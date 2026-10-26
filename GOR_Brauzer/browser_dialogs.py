@@ -715,7 +715,11 @@ class NetworkSecurityTab(QWidget):
         s["lan_clipboard_enabled"] = self.check_lan_clipboard.isChecked()
         s["lan_bookmark_sync_enabled"] = self.check_lan_bookmarks.isChecked()
         try:
-            s["broadcast_port"] = int(self.port_input.text().strip())
+            new_port = int(self.port_input.text().strip())
+            # порт вне 1024-65535 (0, 99999...) приводил к тихому провалу bind() -
+            # LAN Broadcast переставал работать без какого-либо сообщения
+            if 1024 <= new_port <= 65535:
+                s["broadcast_port"] = new_port
         except ValueError:
             pass  # оставляем прежнее значение, если введена не цифра
         self.parent_browser.save_data(SETTINGS_FILE, s)
@@ -723,6 +727,10 @@ class NetworkSecurityTab(QWidget):
         # Применяем сразу, без перезапуска браузера.
         self.parent_browser.adblock_interceptor.set_enabled(s["adblock_enabled"])
         install_cosmetic_filter(self.parent_browser.profile, s["adblock_enabled"])
+        incognito_blocker = getattr(self.parent_browser, "adblock_interceptor_incognito", None)
+        if incognito_blocker is not None:   # то же переключение и для приватного профиля
+            incognito_blocker.set_enabled(s["adblock_enabled"])
+            install_cosmetic_filter(self.parent_browser.incognito_profile, s["adblock_enabled"])
         base_dir = os.path.dirname(os.path.abspath(__file__))
         install_vot_translator(self.parent_browser.profile, base_dir, s["vot_enabled"])
         if s["broadcast_enabled"]:

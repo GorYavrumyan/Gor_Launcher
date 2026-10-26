@@ -24,6 +24,8 @@ from PyQt6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QLocalSocket
 from style_loader import apply_global_style
 from lang_loader import tr
 from cover_ipc import IPC_SERVER_NAME, encode_message, try_decode_line
+from safe_json import read_json, write_json_inplace
+from urllib.parse import quote
 
 # Папка, куда сохраняются обложки, "пойманные" из встроенного браузера
 # (см. ImagePickerDialog ниже). Лежит рядом с games_data.json, как и сами
@@ -95,7 +97,7 @@ class ImagePickerDialog(QDialog):
         layout.addWidget(self.status_lbl)
 
         start_query = initial_query.strip() or "обложка игры"
-        self.url_edit.setText(f"https://www.google.com/search?tbm=isch&q={start_query}")
+        self.url_edit.setText(f"https://www.google.com/search?tbm=isch&q={quote(start_query)}")
         self._navigate()
 
     def _navigate(self):
@@ -103,7 +105,7 @@ class ImagePickerDialog(QDialog):
         if not text:
             return
         if "://" not in text:
-            text = f"https://www.google.com/search?tbm=isch&q={text}"
+            text = f"https://www.google.com/search?tbm=isch&q={quote(text)}"
         self.view.setUrl(QUrl(text))
 
     def _on_image_picked(self, img_url):
@@ -194,21 +196,19 @@ class GameEditor(QDialog):
     def load_json(self):
         if not os.path.exists(self.data_file):
             default_data = {"groups": {}, "standalone": [], "history": []}
-            with open(self.data_file, 'w', encoding='utf-8') as f:
-                json.dump(default_data, f, indent=4)
+            write_json_inplace(self.data_file, default_data)
             return default_data
-        with open(self.data_file, 'r', encoding='utf-8') as f:
-            try:
-                data = json.load(f)
-                if "groups" not in data: data["groups"] = {}
-                if "standalone" not in data: data["standalone"] = []
-                return data
-            except:
-                return {"groups": {}, "standalone": [], "history": []}
+        # Битый файл не затирается молча: read_json пробует .bak, иначе
+        # откладывает копию в .corrupt-*.
+        data = read_json(self.data_file, lambda: {"groups": {}, "standalone": [], "history": []})
+        if not isinstance(data, dict):
+            data = {"groups": {}, "standalone": [], "history": []}
+        if "groups" not in data: data["groups"] = {}
+        if "standalone" not in data: data["standalone"] = []
+        return data
 
     def save_json(self, data):
-        with open(self.data_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=4)
+        write_json_inplace(self.data_file, data)
 
     def init_ui(self):
         # Оформление диалога (тема #EditorDialog) берётся из общего
@@ -338,6 +338,10 @@ class GameEditor(QDialog):
         return False
 
     def save_and_accept(self):
+        # Файл мог измениться, пока редактор был открыт (лаунчер дописал время
+        # игры, браузер - свои данные). Работаем со свежей копией, а не с
+        # устаревшим снимком, иначе сохранение откатит эти изменения.
+        self.all_data = self.load_json()
         name = self.name_edit.text().strip()
         if not name:
             QMessageBox.warning(self, tr("common.error"), tr("game_editor.name_empty_error"))
@@ -347,13 +351,21 @@ class GameEditor(QDialog):
             QMessageBox.warning(self, tr("common.error"), tr("game_editor.name_exists_error"))
             return
 
+        old_entry = None
         if self.original_name:
             lst, idx = self._find_entry(self.original_name, self.original_id)
             if lst is not None:
-                lst.pop(idx)
+                old_entry = lst.pop(idx)
 
         new_data = self.get_data()
         target_group = new_data.pop('group')
+        # Сохраняем всё, что редактор не показывает (guide_group_id, wiki_url,
+        # forum_url, discord_url, поля аддонов...), и актуальное время игры.
+        base = old_entry if old_entry is not None else (self.game_data if self.original_name else {})
+        merged = {k: v for k, v in base.items() if k != 'group'}
+        merged.update(new_data)
+        merged['playtime_seconds'] = base.get('playtime_seconds', new_data.get('playtime_seconds', 0))
+        new_data = merged
         
         if target_group == NO_GROUP_KEY:
             self.all_data["standalone"].append(new_data)
@@ -474,7 +486,11 @@ class GameEditor(QDialog):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
-    app.setWindowIcon(QIcon(os.path.join(os.path.dirname(os.path.abspath(__file__)), "favicon.ico")))
+    _here = os.path.dirname(os.path.abspath(__file__))
+    _icon = os.path.join(_here, "favicon.ico")
+    if not os.path.exists(_icon):
+        _icon = os.path.join(os.path.dirname(_here), "favicon.ico")  # иконка лежит в корне проекта
+    app.setWindowIcon(QIcon(_icon))
     apply_global_style(app)
     
     found_game = None
@@ -486,27 +502,33 @@ if __name__ == "__main__":
         search_id = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] else None
         
         dummy = GameEditor(game_data=None)
-        
-        if search_group == NO_GROUP_KEY or search_group == "БЕЗ ГРУППЫ":
-            candidates = dummy.all_data.get("standalone", [])
-            target_group_name = NO_GROUP_KEY
-        else:
-            candidates = dummy.all_data.get("groups", {}).get(search_group, [])
-            target_group_name = search_group
 
-        # Сначала пытаемся найти по id (надёжно даже при совпадающих именах),
-        # и только если id не передали (старый вызов) - по имени.
+        # Все места, где может лежать игра: (название группы, список).
+        # Раньше искали только в переданной группе - а из вкладки "Избранное"
+        # и из блока "Отдельные игры / Без группы" приходило название, которого
+        # нет в games_data.json, и вместо редактирования открывалась пустая форма.
+        places = [(NO_GROUP_KEY, dummy.all_data.get("standalone", []))]
+        places += list(dummy.all_data.get("groups", {}).items())
+        # приоритет - группе, которую передал лаунчер
+        places.sort(key=lambda p: 0 if p[0] == search_group else 1)
+
+        # Сначала по id (надёжно даже при совпадающих именах)...
         if search_id:
-            for g in candidates:
-                if g.get("id") == search_id:
-                    found_game = g
-                    found_group = target_group_name
+            for gname, lst in places:
+                for g in lst:
+                    if g.get("id") == search_id:
+                        found_game, found_group = g, gname
+                        break
+                if found_game is not None:
                     break
+        # ...и только если id нет (старый вызов / старые записи) - по имени.
         if found_game is None:
-            for g in candidates:
-                if g["name"] == search_name:
-                    found_game = g
-                    found_group = target_group_name
+            for gname, lst in places:
+                for g in lst:
+                    if g.get("name") == search_name:
+                        found_game, found_group = g, gname
+                        break
+                if found_game is not None:
                     break
                         
     editor = GameEditor(game_data=found_game, current_group=found_group)

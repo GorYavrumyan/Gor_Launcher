@@ -17,7 +17,7 @@ _providers = []     # (owner, fn)
 
 def fuzzy_score(query, text):
     """Нечёткий поиск: буквы запроса должны идти по порядку. Больше - лучше, 0 - не подходит."""
-    q, t = query.lower().strip(), text.lower()
+    q, t = (query or "").lower().strip(), (text or "").lower()
     if not q:
         return 1
     if q in t:
