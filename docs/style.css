@@ -94,8 +94,13 @@ body.light-mode {
 }
 
 @keyframes pulseGlow {
-    0% { transform: translateX(-50%) scale(1); }
-    100% { transform: translateX(-50%) scale(1.15); }
+    0% {
+        transform: translateX(-50%) scale(1);
+    }
+
+    100% {
+        transform: translateX(-50%) scale(1.15);
+    }
 }
 
 /* ==========================================
@@ -122,6 +127,7 @@ body.light-mode {
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
 }
 
 .logo-icon {
@@ -251,8 +257,13 @@ body.light-mode .nav-btn:hover {
     width: 100%;
 }
 
-.lang-dropdown button:first-child { border-radius: 7px 7px 0 0; }
-.lang-dropdown button:last-child { border-radius: 0 0 7px 7px; }
+.lang-dropdown button:first-child {
+    border-radius: 7px 7px 0 0;
+}
+
+.lang-dropdown button:last-child {
+    border-radius: 0 0 7px 7px;
+}
 
 .lang-dropdown button.active {
     color: var(--accent-text);
@@ -747,8 +758,15 @@ body.light-mode .doc-title {
     color: #f59e0b;
 }
 
-body.light-mode .badge-green { color: #047857; background: rgba(16, 185, 129, 0.16); }
-body.light-mode .badge-yellow { color: #b45309; background: rgba(245, 158, 11, 0.18); }
+body.light-mode .badge-green {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.16);
+}
+
+body.light-mode .badge-yellow {
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.18);
+}
 
 /* FAQ */
 .faq-item {
@@ -792,6 +810,7 @@ body.light-mode .badge-yellow { color: #b45309; background: rgba(245, 158, 11, 0
    Подвал и уведомления
    ========================================== */
 footer {
+    height: 10px;
     text-align: center;
     padding: 40px;
     color: var(--faint);
@@ -826,15 +845,52 @@ footer {
    Адаптив
    ========================================== */
 @media (max-width: 768px) {
-    .navbar { padding: 14px 5%; justify-content: center; }
-    .navbar nav { gap: 18px; }
-    .hero { padding: 60px 20px 40px; }
-    .hero h1 { font-size: 34px; }
-    .hero-desc { font-size: 16px; }
-    .section { padding: 60px 5%; }
-    .section-title { font-size: 24px; margin-bottom: 35px; }
-    .dl-card { min-width: 0; width: 100%; }
-    .docs-sidebar { position: static; max-height: none; }
-    .doc-card { padding: 20px; }
-    .param-table { display: block; overflow-x: auto; }
+    .navbar {
+        padding: 14px 5%;
+        justify-content: center;
+    }
+
+    .navbar nav {
+        gap: 18px;
+    }
+
+    .hero {
+        padding: 60px 20px 40px;
+    }
+
+    .hero h1 {
+        font-size: 34px;
+    }
+
+    .hero-desc {
+        font-size: 16px;
+    }
+
+    .section {
+        padding: 60px 5%;
+    }
+
+    .section-title {
+        font-size: 24px;
+        margin-bottom: 35px;
+    }
+
+    .dl-card {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .docs-sidebar {
+        position: static;
+        max-height: none;
+    }
+
+    .doc-card {
+        padding: 20px;
+    }
+
+    .param-table {
+        display: block;
+        overflow-x: auto;
+    }
 }

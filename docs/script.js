@@ -535,3 +535,11 @@ function showToast(msg) {
     toast.classList.add("show");
     setTimeout(() => toast.classList.remove("show"), 3000);
 }
+
+
+
+
+var logo = document.getElementById("logo")
+logo.addEventListener("click", function () {
+    window.location.href = "index.html";
+})
