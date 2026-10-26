@@ -10,12 +10,19 @@ import webbrowser
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (
-    QApplication, QDialog, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QProgressBar, QMessageBox
+    QApplication,
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QProgressBar,
+    QMessageBox,
 )
 
 from style_loader import apply_global_style
 from lang_loader import tr
+
 
 def _find_favicon_path():
     """Ищет favicon.ico рядом со скриптом, на уровень выше и в рабочей папке.
@@ -34,6 +41,7 @@ def _find_favicon_path():
             return p
     print(f"[updater] favicon.ico не найден. Проверенные папки: {candidates}")
     return os.path.join(script_dir, "favicon.ico")
+
 
 # ---------------------------------------------------------------------------
 # Настройки репозитория GitHub, откуда берётся обновление.
@@ -54,13 +62,11 @@ VERSION_URL = (
 )
 
 # Ссылка на zip-архив всей ветки репозитория (полный исходный код)
-ARCHIVE_URL = (
-    f"https://codeload.github.com/{GITHUB_OWNER}/{GITHUB_REPO}/zip/refs/heads/{GITHUB_BRANCH}"
-)
+ARCHIVE_URL = f"https://codeload.github.com/{GITHUB_OWNER}/{GITHUB_REPO}/zip/refs/heads/{GITHUB_BRANCH}"
 
 # Ссылка, которую открывает кнопка "Узнать больше" (страница релизов
 # репозитория - там можно посмотреть список изменений перед установкой).
-LEARN_MORE_URL = f"https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/releases"
+LEARN_MORE_URL = "file:///F:/GitHubDesktop/Projects/Gor_Launcher/docs/docs.html"
 
 # Файл, который ни при каких обстоятельствах не должен перезаписываться
 # при обновлении - пользовательская библиотека игр, история и настройки.
@@ -91,8 +97,17 @@ PROTECTED_FILE = "games_data.json"
 # было в списке, и после обновления получался новый core со старым браузером
 # и старым API. Пользовательские данные внутри них защищены через
 # SYNC_SKIP_NAMES (профиль браузера, журналы аддонов, кэш Python).
-UPDATABLE_FOLDERS = {"lang", "core", "shared", "editors", "remote", "addons_sys", "extras",
-                     "addon_api", "gor_brauzer"}
+UPDATABLE_FOLDERS = {
+    "lang",
+    "core",
+    "shared",
+    "editors",
+    "remote",
+    "addons_sys",
+    "extras",
+    "addon_api",
+    "gor_brauzer",
+}
 
 # Имена файлов/папок, которые синхронизация пропускает на любой глубине
 # (сравнение без учёта регистра): данные пользователя и мусор.
@@ -252,7 +267,8 @@ class UpdateWorker(QThread):
         верхнего уровня вида "<repo>-<branch>" - файлы лаунчера лежат
         прямо внутри неё."""
         top_entries = [
-            e for e in os.listdir(extract_dir)
+            e
+            for e in os.listdir(extract_dir)
             if os.path.isdir(os.path.join(extract_dir, e))
         ]
         for top in top_entries:
@@ -460,12 +476,14 @@ class UpdaterDialog(QDialog):
     def install_update(self):
         if self.latest_info is None:
             QMessageBox.information(
-                self, tr("updater.window_title"),
+                self,
+                tr("updater.window_title"),
                 tr("updater.check_first_hint"),
             )
             return
         reply = QMessageBox.question(
-            self, tr("updater.confirm_title"),
+            self,
+            tr("updater.confirm_title"),
             tr("updater.confirm_text"),
         )
         if reply != QMessageBox.StandardButton.Yes:
@@ -486,7 +504,11 @@ class UpdaterDialog(QDialog):
             self.install_btn.setEnabled(False)
         else:
             self.status_label.setText(
-                tr("updater.update_available", remote=remote_version, current=self.current_version)
+                tr(
+                    "updater.update_available",
+                    remote=remote_version,
+                    current=self.current_version,
+                )
             )
             self.install_btn.setEnabled(True)
 
@@ -496,15 +518,19 @@ class UpdaterDialog(QDialog):
         if success:
             self.current_version = get_local_version()
             reply = QMessageBox.question(
-                self, tr("updater.window_title"),
-                tr("updater.restart_prompt", message=message)
+                self,
+                tr("updater.window_title"),
+                tr("updater.restart_prompt", message=message),
             )
             if reply == QMessageBox.StandardButton.Yes:
                 # Ленивый импорт - чтобы не создавать циклическую зависимость
                 # bridge_loader <-> updater (bridge_loader сам импортирует updater).
                 from bridge_loader import restart_launcher
+
                 restart_launcher(confirm=False)
-        elif not (self.worker is not None and getattr(self.worker, "_cancelled", False)):
+        elif not (
+            self.worker is not None and getattr(self.worker, "_cancelled", False)
+        ):
             # (раньше отмену определяли по слову в тексте - на армянском сообщение
             # об отмене не совпадало, и после отмены вылезало лишнее предупреждение)
             QMessageBox.warning(self, tr("updater.window_title"), message)
